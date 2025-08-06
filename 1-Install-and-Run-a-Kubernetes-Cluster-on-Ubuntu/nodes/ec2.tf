@@ -61,7 +61,10 @@ resource "aws_instance" "ec2" {
   subnet_id = aws_subnet.public-subnet.id
   vpc_security_group_ids = [aws_security_group.security-group.id]
   iam_instance_profile = aws_iam_instance_profile.instance-profile.name
-  user_data = templatefile("scripts/setup.sh", {})
+  user_data = templatefile("scripts/setup.sh", {
+    hostname = each.value.hostname
+  })
+
   tags = {
     Name = each.value
     Role = each.key
