@@ -63,6 +63,7 @@ resource "aws_instance" "ec2" {
   iam_instance_profile = aws_iam_instance_profile.instance-profile.name
   user_data = templatefile("scripts/setup.sh", {
     hostname = each.value.hostname
+    role     = each.key
   })
 
   tags = {
