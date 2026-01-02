@@ -89,3 +89,23 @@ spec:
     ports:
     - containerPort: 80
 ```
+Pods are generally not created directly and are created using workload resources. Example of wordload resources that manages one or more pods are:
+- _Deployment_: provides declarative update for pods and replicaSets
+- _StateFulSet_: is the workload API object used to mange stateful applications. A StatefulSet runs a group of Pods, and maintains a sticky identity for each of those Pods. This is useful for managing applications that need persistent storage or a stable, unique network identity.
+- _DaemonSet_: ensure that all Nodes run a copyof a pod. As noes are added to the cluster, pods are added to them. As nodes are removed from the cluster, those pods are garbage collected. Deleting a DaemonSet will clean up the Pods it created.
+
+## Kubernetes Object Management Techniques
+1. _Imperative commands_: You run direct commands and kubernetes perform the action immediately. No configuration file is required. Commands are executed one-by-one and changes are not stored anywhere.
+```
+kubectl create deployment nginx --image nginx
+```
+2. _Imperative object configuration_: You create a YAML file and explicitly tell Kubernetes to create, update or delete it. More repeatable than imperative commands, configuration is stored in files. No automatic tracking of changes.
+3. _Declarative object configuration_: You declared the desired state, Kubernetes figire out how to do it.
+Example
+```
+kubectl apply -f deployment.yaml
+```
+If you change the YAML and reapply:
+```
+kubectl apply -f deployment.yaml
+```
