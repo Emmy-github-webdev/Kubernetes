@@ -109,3 +109,80 @@ If you change the YAML and reapply:
 ```
 kubectl apply -f deployment.yaml
 ```
+- #### Object Names and IDs
+Each object in your cluster has a _Name_ that is unique for that type of resource. Every Kubernetes object also has a _UID_ that is unique across your whole cluster.
+- #### Labels and Selectors
+Labels are key/value pairs that are attached to objects such as Pods.  Labels can be attached to objects at creation time and subsequently added and modified at any time.
+
+Example labels:
+
+- ``"release" : "stable", "release" : "canary"``
+- ``"environment" : "dev", "environment" : "qa", "environment" : "production"``
+- ``"tier" : "frontend", "tier" : "backend", "tier" : "cache"``
+- ``"partition" : "customerA", "partition" : "customerB" "track" : "daily", "track" : "weekly"``
+
+For example, here's a manifest for a Pod that has two labels ``environment: production`` and ``app: nginx``
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: label-demo
+  labels:
+    environment: production
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.14.2
+    ports:
+    - containerPort: 80
+```
+- #### Namespaces
+In Kubernetes, namespaces provide a mechanism for isolating groups of resources within a single cluster. Names of resources need to be unique within a namespace, but not across namespaces.
+
+Namespaces are intended for use in environments with many users spread across multiple teams, or projects
+
+##### Initial namespaces
+1. Default
+2. Kube-node-lease
+3. Kube-public
+4. Kube-system
+
+- #### Annotations
+You can use Kubernetes annotations to attach arbitrary non-identifying metadata to objects. Clients such as tools and libraries can retrieve this metadata. 
+
+##### Attaching metadata to objects
+You can use either labels or annotations to attach metadata to Kubernetes objects. Unlike labels, annotations are not used to select or group objects.
+
+##### Where are Annotations Used?
+
+Annotations can be added to almost any Kubernetes object:
+- Pods
+- Services
+- Deployments
+- ConfigMaps
+- Ingress
+
+Example prometheus scraping, ingress annotations
+```
+annotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9090"
+```
+
+#### Field Selectors
+Field selectors let you select Kubernetes objects based on the value of one or more resource fields. Here are some examples of field selector queries:
+
+- metadata.name=my-service
+- metadata.namespace!=default
+- status.phase=Pending
+This ``kubectl`` command selects all Pods for which the value of the ``status.phase`` field is Running:
+```
+kubectl get pods --field-selector status.phase=Running
+```
+
+#### Finalizers
+Finalizers are namespaced keys that tell Kubernetes to wait until specific conditions are met before it fully deletes resources that are marked for deletion. Finalizers alert controllers to clean up resources the deleted object owned.
+
+#### Owners and Dependents
+In Kubernetes, some objects are owners of other objects. For example, a ReplicaSet is the owner of a set of Pods. These owned objects are dependents of their owner.
