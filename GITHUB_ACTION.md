@@ -1,4 +1,4 @@
-# Enterprise Terraform CI/CD Architecture
+# Terraform CI/CD Architecture
 
 This repository implements an enterprise-grade Terraform delivery model designed for security, repeatability, auditability, and operational confidence. The approach combines GitHub Actions, OIDC-based AWS authentication, reusable workflows, policy scanning, drift detection, and environment approvals to make infrastructure changes safer and more governable.
 
@@ -36,7 +36,7 @@ This architecture is not just automation; it is a governance framework for infra
 ## Repository structure
 
 The recommended layout for this setup is:
-
+```
 .github/
   workflows/
     terraform.yml
@@ -49,7 +49,8 @@ infra/
     staging/
     prod/
   terraform/
-
+  
+```
 ---
 
 ## Workflow design
