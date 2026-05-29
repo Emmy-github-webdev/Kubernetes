@@ -31,10 +31,18 @@ This prevents old runs from stacking up when a new change is pushed.
 ### 2. Reusable Terraform workflow: .github/workflows/reusable-terraform.yml
 This is the main implementation path used by the CI/CD pipeline.
 
+It now includes a backend bootstrap phase that:
+- generates a per-environment S3 state key
+- creates the Terraform state bucket if missing
+- enables S3 versioning and encryption
+- creates the DynamoDB lock table if missing
+- writes a generated `backend.hcl` for `terraform init`
+
 It currently includes:
 - OIDC-based AWS authentication (no static AWS keys)
+- Terraform backend bootstrap and backend.hcl generation
 - Terraform setup and plugin cache
-- terraform init
+- terraform init with backend config
 - terraform fmt -check
 - terraform validate
 - TFLint
