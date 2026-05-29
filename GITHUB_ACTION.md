@@ -1,160 +1,98 @@
-# Terraform CI/CD Architecture
+# GitHub Actions Terraform CI/CD Guide
 
-This repository implements an enterprise-grade Terraform delivery model designed for security, repeatability, auditability, and operational confidence. The approach combines GitHub Actions, OIDC-based AWS authentication, reusable workflows, policy scanning, drift detection, and environment approvals to make infrastructure changes safer and more governable.
+This document reflects the current GitHub Actions setup in this repository and aligns with the implemented Terraform CI/CD workflow.
 
-## Why this approach is the right choice
+## Current architecture
 
-This architecture is not just automation; it is a governance framework for infrastructure delivery.
+The repository now uses three workflow files:
 
-### 1. Secure by default
-- Uses OIDC authentication instead of static AWS access keys.
-- Eliminates long-lived credentials from GitHub secrets.
-- Reduces the risk of accidental credential exposure and improves compliance posture.
+- .github/workflows/terraform.yml
+- .github/workflows/reusable-terraform.yml
+- .github/workflows/terraform-drift.yml
 
-### 2. Reusable and scalable
-- A single reusable workflow powers all environments.
-- The same validation, planning, and security gates apply consistently across dev, staging, and prod.
-- This keeps the platform easy to extend as the infrastructure footprint grows.
+## What the workflows do
 
-### 3. Quality gates before deployment
-- Runs Terraform format checks, validation, TFLint, and Checkov in CI.
-- Prevents low-quality or non-compliant infrastructure changes from reaching production.
-- Creates a stronger engineering standard than basic plan/apply pipelines.
-
-### 4. Safer production operations
-- Uses GitHub Environments to enforce approvals before production-level actions.
-- Supports manual destroy operations with explicit control.
-- Uses immutable plan artifacts so the apply step is based on a verified, generated plan rather than a fresh ad-hoc run.
-
-### 5. Operational visibility and drift control
-- Generates PR comments with plan summaries and security results.
-- Adds scheduled drift detection to identify infrastructure changes that happened outside the normal pipeline.
-- Improves reliability and reduces surprise changes in deployed environments.
-
----
-
-## Repository structure
-
-The recommended layout for this setup is:
-```
-.github/
-  workflows/
-    terraform.yml
-    reusable-terraform.yml
-    terraform-drift.yml
-
-infra/
-  environments/
-    dev/
-    staging/
-    prod/
-  terraform/
-  
-```
----
-
-## Workflow design
-
-### 1. Main CI/CD workflow
-File: .github/workflows/terraform.yml
-
-This workflow acts as the entry point for:
+### 1. Main pipeline: .github/workflows/terraform.yml
+This is the entry workflow for:
 - pushes to develop, staging, main, and feature branches
 - pull requests targeting staging and main
 - manual workflow dispatch
 
-It determines the target environment and action, then calls the reusable Terraform workflow.
+It performs two important tasks:
+1. Detects the target environment from the branch or manual input.
+2. Calls the reusable Terraform workflow with the selected environment and action.
 
-### 2. Reusable Terraform workflow
-File: .github/workflows/reusable-terraform.yml
+It also uses concurrency control:
+- group: terraform-${{ github.ref }}
+- cancel-in-progress: true
 
-This is the core execution path and includes:
-- Terraform setup and caching
-- OIDC-based AWS authentication
+This prevents old runs from stacking up when a new change is pushed.
+
+### 2. Reusable Terraform workflow: .github/workflows/reusable-terraform.yml
+This is the main implementation path used by the CI/CD pipeline.
+
+It currently includes:
+- OIDC-based AWS authentication (no static AWS keys)
+- Terraform setup and plugin cache
 - terraform init
 - terraform fmt -check
 - terraform validate
 - TFLint
 - Checkov
 - terraform plan
-- plan artifact generation
-- PR plan comments
-- apply / destroy execution for approved paths
+- immutable plan artifact upload
+- PR plan summary comments
+- apply and destroy execution for approved paths
 
-### 3. Drift detection workflow
-File: .github/workflows/terraform-drift.yml
+### 3. Drift detection: .github/workflows/terraform-drift.yml
+This workflow runs on a schedule and can also be triggered manually.
 
-This workflow runs on a schedule and on demand to detect configuration drift between the desired Terraform state and the actual cloud infrastructure.
+It checks for configuration drift across:
+- dev
+- staging
+- prod
 
----
-
-## Security and compliance benefits
-
-This design improves the organization’s infrastructure posture in several important ways:
-
-- No static AWS keys stored in GitHub secrets
-- Least-privilege access through OIDC role assumption
-- Mandatory checks before deployment
-- Security scanning with Checkov
-- Linting with TFLint
-- Environment-level approval controls
-- Full audit trail through GitHub Actions logs and artifacts
-
-This is exactly the kind of automation leadership expects from a mature cloud platform team.
+This helps identify infrastructure drift that may have occurred outside normal CI/CD changes.
 
 ---
 
-## Why this is better than a basic Terraform pipeline
+## Security model
 
-A basic pipeline usually does only this:
-- terraform init
-- terraform apply
+The current implementation follows an enterprise-grade security pattern:
 
-That is not enough for production-grade infrastructure.
-
-This architecture adds the controls that matter:
-- policy and quality enforcement
-- secure authentication
-- approval workflows
-- drift visibility
-- repeatable deployment behavior
-- clearer reviewer feedback on pull requests
-
-In short, this is a platform-grade delivery model rather than a simple script runner.
+- Uses GitHub OIDC to assume an AWS role
+- Avoids storing long-lived AWS credentials in GitHub secrets
+- Uses GitHub Environments for environment-specific approvals
+- Uses reusable workflow logic for consistent security and deployment gates
+- Stores Terraform plan outputs as artifacts for traceability and replay
 
 ---
 
-## Operational advantages
+## Operational benefits
 
-- Faster onboarding for new engineers because the workflow is centralized
-- Consistent behavior across environments
-- Easier troubleshooting because every run is logged and traceable
-- Better protection against accidental changes and unsafe deployments
-- Stronger alignment with cloud governance and compliance expectations
+This setup improves the platform in the following ways:
 
----
-
-## Recommended governance next steps
-
-To fully operationalize this model, the following should be enabled:
-
-1. Configure GitHub Environments for dev, staging, and prod
-2. Add required reviewers to protected environments
-3. Set up branch protection rules on main and staging
-4. Ensure the AWS IAM role trusted by GitHub OIDC is correctly scoped
-5. Monitor drift detection results and review findings regularly
+- consistent deployment behavior across environments
+- lower risk of accidental credential exposure
+- stronger validation and policy checks before deploy
+- visibility into pull request changes through plan comments
+- better control of drift and infrastructure changes over time
+- safer manual operations through explicit apply/destroy paths
 
 ---
 
-## Executive summary
+## Recommended repository governance
 
-This Terraform CI/CD setup represents a production-ready, enterprise-aligned approach to infrastructure automation. It combines security, discipline, visibility, and control in one maintainable framework.
+To fully align the workflow with production standards, configure the following in GitHub:
 
-It is the best choice because it:
-- protects cloud credentials properly
-- improves deployment quality
-- reduces operational risk
-- supports audit and governance requirements
-- scales cleanly across environments
+1. GitHub Environments for dev, staging, and prod
+2. Required reviewers for protected environments
+3. Branch protection rules on main and staging
+4. Proper IAM trust policy for the GitHub OIDC role
+5. Regular review of drift detection outputs
 
-This is the kind of architecture that gives leadership confidence that infrastructure changes are being managed responsibly and professionally.
+---
+
+## Summary
+
+The current GitHub Actions implementation is a secure, reusable, and production-oriented Terraform delivery model. It combines OIDC authentication, reusable workflows, validation, security scanning, drift detection, and controlled deployment paths into one consistent CI/CD approach.

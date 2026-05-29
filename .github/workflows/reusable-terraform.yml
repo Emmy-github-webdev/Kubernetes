@@ -19,7 +19,8 @@ permissions:
 
 env:
   TF_VERSION: "1.8.5"
-  AWS_REGION: "eu-west-1"
+  AWS_REGION: "us-east-1"
+  TF_WORKING_DIR: infra/environments/${{ inputs.environment }}
 
 jobs:
 
@@ -45,7 +46,7 @@ jobs:
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::123456789012:role/github-terraform-role
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       #################################################
@@ -76,6 +77,7 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -input=false
+        working-directory: ${{ env.TF_WORKING_DIR }}
 
       #################################################
       # TERRAFORM FMT
@@ -92,6 +94,7 @@ jobs:
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
+        working-directory: ${{ env.TF_WORKING_DIR }}
 
       #################################################
       # TFLINT
@@ -107,6 +110,7 @@ jobs:
         id: tflint
         continue-on-error: true
         run: tflint --recursive --format compact
+        working-directory: ${{ env.TF_WORKING_DIR }}
 
       #################################################
       # CHECKOV
@@ -117,7 +121,7 @@ jobs:
         uses: bridgecrewio/checkov-action@v12
         continue-on-error: true
         with:
-          directory: .
+          directory: ${{ env.TF_WORKING_DIR }}
           framework: terraform
           output_format: cli,json
           output_file_path: console,checkov.json
@@ -139,6 +143,7 @@ jobs:
 
           terraform show -json tfplan > tfplan.json
           terraform show -no-color tfplan > tfplan.txt
+          working-directory: ${{ env.TF_WORKING_DIR }}
 
       #################################################
       # PLAN SUMMARY
@@ -193,9 +198,9 @@ jobs:
         with:
           name: tfplan-${{ inputs.environment }}
           path: |
-            tfplan
-            tfplan.json
-            tfplan.txt
+            ${{ env.TF_WORKING_DIR }}/tfplan 
+            ${{ env.TF_WORKING_DIR }}/tfplan.json 
+            ${{ env.TF_WORKING_DIR }}/tfplan.txt
 
       #################################################
       # PR COMMENT
@@ -279,6 +284,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan-${{ inputs.environment }}
+          path: ${{ env.TF_WORKING_DIR }}
 
       - name: Terraform Apply
         if: |
@@ -298,4 +304,4 @@ jobs:
         run: |
           terraform destroy \
             -auto-approve \
-            -var-file=environments/${{ inputs.environment }}/terraform.tfvars
+        working-directory: ${{ env.TF_WORKING_DIR }}
