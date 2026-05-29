@@ -37,6 +37,15 @@ concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
 
+################################################# 
+# REQUIRED FOR REUSABLE WORKFLOW 
+################################################# 
+permissions: 
+  id-token: write 
+  contents: read 
+  pull-requests: write 
+  security-events: write
+
 jobs:
 
   determine-env:
