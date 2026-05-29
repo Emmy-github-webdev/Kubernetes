@@ -1,0 +1,301 @@
+name: Reusable Terraform Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+      tf_action:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+  security-events: write
+
+env:
+  TF_VERSION: "1.8.5"
+  AWS_REGION: "eu-west-1"
+
+jobs:
+
+  terraform:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: ${{ inputs.environment }}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      #################################################
+      # OIDC AUTHENTICATION
+      #################################################
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-terraform-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      #################################################
+      # TERRAFORM SETUP
+      #################################################
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.terraform.d/plugin-cache
+          key: terraform-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
+
+      - name: Configure Terraform Plugin Cache
+        run: |
+          mkdir -p ~/.terraform.d/plugin-cache
+
+          echo 'plugin_cache_dir="$HOME/.terraform.d/plugin-cache"' > ~/.terraformrc
+
+      #################################################
+      # TERRAFORM INIT
+      #################################################
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      #################################################
+      # TERRAFORM FMT
+      #################################################
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+
+      #################################################
+      # TERRAFORM VALIDATE
+      #################################################
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      #################################################
+      # TFLINT
+      #################################################
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Initialize TFLint
+        run: tflint --init
+
+      - name: Run TFLint
+        id: tflint
+        continue-on-error: true
+        run: tflint --recursive --format compact
+
+      #################################################
+      # CHECKOV
+      #################################################
+
+      - name: Run Checkov Scan
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12
+        continue-on-error: true
+        with:
+          directory: .
+          framework: terraform
+          output_format: cli,json
+          output_file_path: console,checkov.json
+          quiet: true
+          soft_fail: true
+
+      #################################################
+      # TERRAFORM PLAN
+      #################################################
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var-file=environments/${{ inputs.environment }}/terraform.tfvars \
+            -out=tfplan \
+            -input=false \
+            -no-color
+
+          terraform show -json tfplan > tfplan.json
+          terraform show -no-color tfplan > tfplan.txt
+
+      #################################################
+      # PLAN SUMMARY
+      #################################################
+
+      - name: Parse Terraform Plan Summary
+        id: plan-summary
+        run: |
+
+          ADD=$(jq '[.resource_changes[]?.change.actions?] | flatten | map(select(. == "create")) | length' tfplan.json)
+
+          CHANGE=$(jq '[.resource_changes[]?.change.actions?] | flatten | map(select(. == "update")) | length' tfplan.json)
+
+          DESTROY=$(jq '[.resource_changes[]?.change.actions?] | flatten | map(select(. == "delete")) | length' tfplan.json)
+
+          echo "add=$ADD" >> $GITHUB_OUTPUT
+          echo "change=$CHANGE" >> $GITHUB_OUTPUT
+          echo "destroy=$DESTROY" >> $GITHUB_OUTPUT
+
+      #################################################
+      # CHECKOV SUMMARY
+      #################################################
+
+      - name: Parse Checkov Summary
+        id: checkov-summary
+        run: |
+
+          if [ -f checkov.json ]; then
+
+            PASSED=$(jq '.summary.passed // 0' checkov.json)
+            FAILED=$(jq '.summary.failed // 0' checkov.json)
+            SKIPPED=$(jq '.summary.skipped // 0' checkov.json)
+
+          else
+
+            PASSED=0
+            FAILED=0
+            SKIPPED=0
+
+          fi
+
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+
+      #################################################
+      # UPLOAD PLAN
+      #################################################
+
+      - name: Upload Terraform Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: |
+            tfplan
+            tfplan.json
+            tfplan.txt
+
+      #################################################
+      # PR COMMENT
+      #################################################
+
+      - name: Comment Terraform Plan on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            const plan = fs.readFileSync('tfplan.txt', 'utf8');
+
+            const body = `
+            ## Terraform Plan - ${{ inputs.environment }}
+
+            ### Terraform Changes
+
+            | Action | Count |
+            |---|---|
+            | Add | ${{ steps.plan-summary.outputs.add }} |
+            | Change | ${{ steps.plan-summary.outputs.change }} |
+            | Destroy | ${{ steps.plan-summary.outputs.destroy }} |
+
+            ### Checkov Summary
+
+            | Result | Count |
+            |---|---|
+            | Passed | ${{ steps.checkov-summary.outputs.passed }} |
+            | Failed | ${{ steps.checkov-summary.outputs.failed }} |
+            | Skipped | ${{ steps.checkov-summary.outputs.skipped }} |
+
+            <details>
+            <summary>Terraform Plan</summary>
+
+            \`\`\`terraform
+            ${plan.substring(0, 60000)}
+            \`\`\`
+
+            </details>
+            `;
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.data.find(comment =>
+              comment.body.includes('## Terraform Plan')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      #################################################
+      # APPLY / DESTROY
+      #################################################
+
+      - name: Download Terraform Plan
+        if: |
+          github.ref == 'refs/heads/develop' ||
+          github.ref == 'refs/heads/staging' ||
+          github.ref == 'refs/heads/main' ||
+          github.event_name == 'workflow_dispatch'
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment }}
+
+      - name: Terraform Apply
+        if: |
+          (
+            github.ref == 'refs/heads/develop' ||
+            github.ref == 'refs/heads/staging' ||
+            github.ref == 'refs/heads/main' ||
+            github.event_name == 'workflow_dispatch'
+          ) &&
+          inputs.tf_action == 'apply'
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Destroy
+        if: |
+          github.event_name == 'workflow_dispatch' &&
+          inputs.tf_action == 'destroy'
+        run: |
+          terraform destroy \
+            -auto-approve \
+            -var-file=environments/${{ inputs.environment }}/terraform.tfvars
