@@ -1,0 +1,56 @@
+name: Terraform Drift Detection
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+
+  drift-detection:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment:
+          - dev
+          - staging
+          - prod
+
+    environment:
+      name: ${{ matrix.environment }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-terraform-role
+          aws-region: eu-west-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.5"
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Drift Check
+        run: |
+          terraform plan \
+            -detailed-exitcode \
+            -var-file=environments/${{ matrix.environment }}/terraform.tfvars
+
+      # Exit code meanings:
+      # 0 = no drift
+      # 1 = error
+      # 2 = drift detected
