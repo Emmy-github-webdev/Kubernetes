@@ -1,17 +1,14 @@
 variable "env_name" {
   description = "Defines the environment to provision the resurces"
   type        = string
-  default     = "dev"
 }
 
 variable "project_name" {
   description = "Defines the project name"
   type        = string
-  default     = "eks"
 }
 
 variable "region_name" {
   type        = string
   description = "Defines the region where the resources are created"
-  default     = "us-east-1"
 }
