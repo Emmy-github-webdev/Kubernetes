@@ -1,8 +1,8 @@
 module "tags" {
   source       = "../../modules/terraform-tags"
-  env_name     = var.env_name
-  project_name = var.project_name
-  region_name  = var.region_name
+  env_name     = var.environment
+  project_name = var.project
+  region_name  = var.region
 }
 
 module "vpc" {

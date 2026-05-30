@@ -1,16 +1,16 @@
-variable "env_name" {
+variable "environment" {
   description = "Defines the environment to provision the resurces"
   type        = string
   default     = "dev"
 }
 
-variable "project_name" {
+variable "project" {
   description = "Defines the project name"
   type        = string
   default     = "eks"
 }
 
-variable "region_name" {
+variable "region" {
   type        = string
   description = "Defines the region where the resources are created"
   default     = "us-east-1"

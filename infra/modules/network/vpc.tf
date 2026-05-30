@@ -5,6 +5,6 @@ resource "aws_vpc" "eks_vpc" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "${var.tags.project_name}-${var.tags.env_name}-vpc"
+    Name = "${var.tags.project}-${var.tags.environment}-vpc"
   }
 }
