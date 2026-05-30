@@ -186,11 +186,11 @@ jobs:
       #################################################
 
       - name: Terraform Init
-        run: | 
-          terraform init \ 
-          -backend-config=backend.hcl \ 
-          -input=false
         working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config=backend.hcl \
+            -input=false
 
       #################################################
       # TERRAFORM FMT
