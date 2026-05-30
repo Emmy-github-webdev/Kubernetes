@@ -10,6 +10,7 @@ on:
 
   pull_request:
     branches:
+      - develop
       - staging
       - main
 
@@ -80,7 +81,11 @@ jobs:
             echo "environment=dev" >> $GITHUB_OUTPUT
           fi
 
-          echo "tf_action=apply" >> $GITHUB_OUTPUT
+          if [[ "$BRANCH" == "develop" || "$BRANCH" == "staging" || "$BRANCH" == "main" ]]; then
+            echo "tf_action=apply" >> $GITHUB_OUTPUT
+          else
+            echo "tf_action=plan" >> $GITHUB_OUTPUT
+          fi
 
   terraform:
     needs: determine-env
