@@ -42,19 +42,14 @@ jobs:
       #################################################
       # OIDC AUTHENTICATION
       #################################################
-      - name: Debug GitHub OIDC
-        run: |
-          echo "Repository: $GITHUB_REPOSITORY"
-          echo "Ref: $GITHUB_REF"
 
-      - name: Debug OIDC availability
+      - name: Check AWS role secret
         run: |
-          echo "TOKEN URL: $ACTIONS_ID_TOKEN_REQUEST_URL"
-          echo "TOKEN TOKEN: $ACTIONS_ID_TOKEN_REQUEST_TOKEN"
-
-      - name: Debug role
-        run: |
-          echo "ROLE=${{ steps.env.outputs.role }}"
+          if [ -z "${{ secrets.AWS_ROLE_ARN }}" ]; then
+            echo "ROLE secret is missing"
+            exit 1
+          fi
+          echo "ROLE secret is present"
           
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
