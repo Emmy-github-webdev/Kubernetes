@@ -248,16 +248,15 @@ jobs:
 
       - name: Terraform Plan
         id: plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           terraform plan \
-            -var-file=environments/${{ inputs.environment }}/terraform.tfvars \
             -out=tfplan \
             -input=false \
             -no-color
 
           terraform show -json tfplan > tfplan.json
           terraform show -no-color tfplan > tfplan.txt
-          working-directory: ${{ env.TF_WORKING_DIR }}
 
       #################################################
       # PLAN SUMMARY
@@ -265,6 +264,7 @@ jobs:
 
       - name: Parse Terraform Plan Summary
         id: plan-summary
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
 
           ADD=$(jq '[.resource_changes[]?.change.actions?] | flatten | map(select(. == "create")) | length' tfplan.json)
