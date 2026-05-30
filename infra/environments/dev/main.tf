@@ -7,6 +7,6 @@ module "tags" {
 
 module "vpc" {
   source   = "../../modules/network"
-  tags     = module.tags.tags
+  tags     = module.tags.common_tags
   vpc_cidr = "10.0.0.0/16"
 }
