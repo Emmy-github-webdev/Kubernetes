@@ -83,11 +83,17 @@ jobs:
           else
 
             echo "Creating S3 bucket: $TF_STATE_BUCKET"
-
-            aws s3api create-bucket \
-              --bucket "$TF_STATE_BUCKET" \
-              --region "${{ env.AWS_REGION }}" \
-              --create-bucket-configuration LocationConstraint=${{ env.AWS_REGION }}
+            
+            if [ "$AWS_REGION" = "us-east-1" ]; then
+              aws s3api create-bucket \
+                --bucket "$TF_STATE_BUCKET" \
+                --region "$AWS_REGION"
+            else
+              aws s3api create-bucket \
+                --bucket "$TF_STATE_BUCKET" \
+                --region "$AWS_REGION" \
+                --create-bucket-configuration LocationConstraint="$AWS_REGION"
+            fi
 
             #################################################
             # ENABLE VERSIONING
