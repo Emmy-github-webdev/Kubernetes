@@ -65,6 +65,7 @@ jobs:
         env:
           TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
           TF_LOCK_TABLE: ${{ secrets.TF_LOCK_TABLE }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
 
           ENVIRONMENT="${{ inputs.environment }}"
