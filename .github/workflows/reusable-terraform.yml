@@ -101,17 +101,16 @@ jobs:
             # ENABLE ENCRYPTION
             #################################################
 
-            cat > encryption.json <<EOF
-            {
-              "Rules": [
-                {
-                  "ApplyServerSideEncryptionByDefault": {
-                    "SSEAlgorithm": "AES256"
+            run: |
+              jq -n '{
+                Rules: [
+                  {
+                    ApplyServerSideEncryptionByDefault: {
+                      SSEAlgorithm: "AES256"
+                    }
                   }
-                }
-              ]
-            }
-            EOF
+                ]
+              }' > encryption.json
 
             aws s3api put-bucket-encryption \
               --bucket "$TF_STATE_BUCKET" \
