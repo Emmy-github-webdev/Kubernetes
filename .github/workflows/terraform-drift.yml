@@ -42,13 +42,14 @@ jobs:
           terraform_version: "1.8.5"
 
       - name: Terraform Init
+        working-directory: infra/environments/${{ matrix.environment }}
         run: terraform init -input=false
 
       - name: Terraform Drift Check
+        working-directory: infra/environments/${{ matrix.environment }}
         run: |
           terraform plan \
-            -detailed-exitcode \
-            -var-file=environments/${{ matrix.environment }}/terraform.tfvars
+            -detailed-exitcode
 
       # Exit code meanings:
       # 0 = no drift
