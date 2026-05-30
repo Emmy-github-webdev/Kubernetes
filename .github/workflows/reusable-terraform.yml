@@ -69,7 +69,7 @@ jobs:
 
           ENVIRONMENT="${{ inputs.environment }}"
 
-          BACKEND_KEY="kubernetes-infra/${ENVIRONMENT}/tfstate.tfstate"
+          BACKEND_KEY="emmy-github-webdev_Kubernetes/${ENVIRONMENT}/tfstate.tfstate"
 
           echo "Backend key: ${BACKEND_KEY}"
 
