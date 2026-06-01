@@ -88,9 +88,32 @@ Private Route Table:
 
 ```
 
+7. _Create Security Groups_
+
+- Cluster security group
+
+```
+Inbound:
+TCP 443
+Source: WorkerNodeSG
+
+Outbound:
+All
+```
+
+- Worker Node Security group
+
+```
+Outbound:
+TCP 443 → Cluster SG
+
+Inbound:
+WorkerNodeSG → WorkerNodeSG
+```
+
 ### Phase 2 - EKS Cluster
 
-7. _Create EKS Cluster_
+8. _Create EKS Cluster_
 
 ```
 Enable:
@@ -106,7 +129,7 @@ publicAccessCidrs:
   -YOUR_OFFICE_IP/32
 ```
 
-8. _Create Managed Node Group_
+9. _Create Managed Node Group_
 
 ```
 Place nodes only in:
@@ -119,7 +142,9 @@ Disable public IP assignment.
 
 Verify:
 
-kubectlgetnodes
+```
+kubectl get nodes
+```
 
 Expected:
 
@@ -128,7 +153,7 @@ STATUS Ready
 
 ### Phase 3 - VPC Endpoints
 
-9. _Create Interface Endpoints_
+10. _Create Interface Endpoints_
 Create:
   - ECR API
   - ECR DKR
@@ -158,7 +183,7 @@ HTTP 403
 
 ### Phase 4 - IAM Roles for Service Accounts
 
-10. _Enable OIDC Provider_
+11. _Enable OIDC Provider_
 
 ```
 # I use terraform
@@ -178,7 +203,7 @@ awseksdescribe-cluster
 
 ### Phase 5 - AWS Load Balancer Controller
 
-11. _Install Controller_
+12. _Install Controller_
   - Create IAM policy.
   - Create service account.
   - Install Helm chart.
@@ -196,7 +221,7 @@ Running
 
 ### Phase 6 - Monitoring Stack
 
-12. _Create Monitoring Namespace_
+13. _Create Monitoring Namespace_
 createnamespacemonitoring
 
 Verify:
@@ -205,14 +230,14 @@ Verify:
 kubectlgetnsmonitoring
 ```
 
-13. _Add Helm Repository_
+14. _Add Helm Repository_
 
 ```
 helmrepoaddprometheus-community
 https://prometheus-community.github.io/helm-charts
 helmrepoupdate
 ```
-14. _Install kube-prometheus-stack_
+15. _Install kube-prometheus-stack_
 
 ```
 helminstallmonitoring
@@ -243,7 +268,7 @@ Running
 
 ### Phase 7 - Expose Grafana
 
-15. Create Ingress
+16. Create Ingress
 
 Create:
 
