@@ -401,3 +401,8 @@ Confirm:
   - Alertmanager operational
   - ALB exposing Grafana
   - No worker nodes have public IPs
+
+
+## Resources
+
+- [Checkov - AWS General Policies](https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/aws-general-policies)
