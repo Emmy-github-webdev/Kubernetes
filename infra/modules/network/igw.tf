@@ -4,5 +4,4 @@ resource "aws_internet_gateway" "eks_igw" {
   tags = {
     Name = "${var.tags.project}-${var.tags.environment}-igw"
   }
-  
 }
