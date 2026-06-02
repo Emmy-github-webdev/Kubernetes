@@ -1,9 +1,23 @@
 # VPC Flow Logs CloudWatch log group
 resource "aws_cloudwatch_log_group" "eks_vpc_flow_logs" {
   name              = "/aws/vpc/flowlogs/${var.tags.project}-${var.tags.environment}"
-  retention_in_days = 7
-
+  retention_in_days = 365
+  kms_key_id        = aws_kms_key.cloudwatch_logs.arn
   tags = {
     Name = "/aws/vpc/flowlogs/${var.tags.project}-${var.tags.environment}"
   }
+}
+
+resource "aws_kms_key" "cloudwatch_logs" {
+  description         = "KMS key for CloudWatch Log Groups"
+  enable_key_rotation = true
+
+  tags = {
+    Name = "${var.tags.project}-${var.tags.environment}-kms-cloudwatch-logs"
+  }
+}
+
+resource "aws_kms_alias" "cloudwatch_logs" {
+  name          = "alias/cloudwatch-logs"
+  target_key_id = aws_kms_key.cloudwatch_logs.key_id
 }
