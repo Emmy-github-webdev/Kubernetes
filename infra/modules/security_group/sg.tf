@@ -68,7 +68,6 @@ resource "aws_vpc_security_group_egress_rule" "eks_worker_all_out" {
 
 # Restrict default security group
 resource "aws_default_security_group" "default" {
-  description = "Default security group with no inbound rules"
   vpc_id      = var.eks_vpc_id
 
   ingress {
