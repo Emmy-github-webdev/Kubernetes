@@ -440,3 +440,4 @@ Sonarcube
 auto scaling
 trivy
 Argocd
+Cloudwatch

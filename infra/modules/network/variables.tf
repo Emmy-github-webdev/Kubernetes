@@ -25,3 +25,13 @@ variable "private_subnet_cidrs" {
   description = "List of CIDR blocks for private subnets"
   type        = list(string)
 }
+
+variable "cloudwatch_log_group_arn" {
+  description = "ARN of the CloudWatch log group for VPC flow logs"
+  type        = string
+}
+
+variable "vpc_flow_logs_iam_role_arn" {
+  description = "IAM Role ARN for VPC flow logs"
+  type        = string
+}
