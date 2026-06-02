@@ -15,7 +15,7 @@ module "vpc" {
 }
 
 module "security_groups" {
-  source      = "../../modules/security_group"
-  tags        = module.tags.common_tags
-  eks_vpc_id  = module.vpc.vpc_id
+  source     = "../../modules/security_group"
+  tags       = module.tags.common_tags
+  eks_vpc_id = module.vpc.vpc_id
 }
