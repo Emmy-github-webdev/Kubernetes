@@ -77,6 +77,7 @@ Attach to VPC.
   - One NAT Gateway per AZ.
   - Assign Elastic IPs.
 
+
 6. _Configure Route Tables_
 
 ```
@@ -431,3 +432,11 @@ Confirm:
 ## Resources
 
 - [Checkov - AWS General Policies](https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/aws-general-policies)
+
+
+Notes
+
+Sonarcube
+auto scaling
+trivy
+Argocd
