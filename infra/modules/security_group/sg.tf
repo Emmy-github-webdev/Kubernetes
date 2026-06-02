@@ -70,20 +70,9 @@ resource "aws_vpc_security_group_egress_rule" "eks_worker_all_out" {
 resource "aws_default_security_group" "default" {
   vpc_id = var.eks_vpc_id
 
-  ingress {
-    protocol  = "-1"
-    self      = true
-    from_port = 0
-    to_port   = 0
-  }
+  ingress = []
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
+  egress = []
 
   tags = {
     Name = "${var.tags.project}-${var.tags.environment}-default-sg"
