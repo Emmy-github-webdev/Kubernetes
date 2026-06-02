@@ -1,5 +1,5 @@
 locals {
-  public_subnets  = {
+  public_subnets = {
     for i, az in var.azs : az => var.public_subnet_cidrs[i]
   }
 
@@ -9,7 +9,7 @@ locals {
 }
 
 resource "aws_subnet" "eks_public_subnets" {
-  for_each = local.public_subnets
+  for_each                = local.public_subnets
   vpc_id                  = aws_vpc.eks_vpc.id
   cidr_block              = each.value
   availability_zone       = each.key
@@ -22,7 +22,7 @@ resource "aws_subnet" "eks_public_subnets" {
 
 
 resource "aws_subnet" "eks_private_subnets" {
-  for_each = local.private_subnets
+  for_each                = local.private_subnets
   vpc_id                  = aws_vpc.eks_vpc.id
   cidr_block              = each.value
   availability_zone       = each.key

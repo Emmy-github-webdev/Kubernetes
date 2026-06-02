@@ -1,6 +1,6 @@
 resource "aws_route_table" "eks_private_rt" {
   for_each = local.private_subnets
-  vpc_id = aws_vpc.eks_vpc.id
+  vpc_id   = aws_vpc.eks_vpc.id
 
   tags = {
     Name = "${var.tags.project}-${var.tags.environment}-private-rt-${each.key}"
