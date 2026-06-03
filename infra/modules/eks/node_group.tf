@@ -3,9 +3,7 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
   node_group_name = "managed"
   node_role_arn   = aws_iam_role.eks_nodegroup_role.arn
 
-  subnet_ids = [
-    for subnet in aws_subnet.private : var.private_subnet_ids[subnet.id]
-  ]
+  subnet_ids = var.private_subnet_ids
 
   scaling_config {
     desired_size = 2
