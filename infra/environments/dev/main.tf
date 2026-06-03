@@ -32,3 +32,10 @@ module "iam" {
   tags              = module.tags.common_tags
   vpc_flow_logs_arn = module.cloudwatch.vpc_flow_logs_cloudwatch_loggroup_arn
 }
+
+module "eks" {
+  source               = "../../modules/eks"
+  tags                 = module.tags.common_tags
+  private_subnet_ids   = module.vpc.private_subnet_ids
+  eks_cluster_role_arn = module.eks_cluster_role_arn
+}
