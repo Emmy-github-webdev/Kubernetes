@@ -343,8 +343,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
+            const path = require('path');
 
-            const plan = fs.readFileSync('tfplan.txt', 'utf8');
+            const planPath = path.join('${{ env.TF_WORKING_DIR }}', 'tfplan.txt');
+            const plan = fs.readFileSync(planPath, 'utf8');
 
             const body = `
             ## Terraform Plan - ${{ inputs.environment }}
