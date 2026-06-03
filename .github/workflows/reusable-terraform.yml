@@ -374,11 +374,8 @@ jobs:
               `https://github.com/${context.repo.owner}/${context.repo.repo}` +
               `/actions/runs/${context.runId}`;
 
-            const total =
-              Number(`${{ steps.plan-summary.outputs.add }}`) +
-              Number(`${{ steps.plan-summary.outputs.change }}`) +
-              Number(`${{ steps.plan-summary.outputs.destroy }}`);
-              : '';
+            const destroy = `${{ steps.tf-summary.outputs.destroy }}`.trim() || "None";
+            const modify = `${{ steps.tf-summary.outputs.modify }}`.trim() || "None";
 
 
             const planPath = path.join('${{ env.TF_WORKING_DIR }}', 'tfplan.txt');
@@ -410,7 +407,7 @@ jobs:
             > ⚠️ These resources will be permanently removed
 
             \`\`\`
-            ${{ steps.tf-summary.outputs.destroy || "None" }}
+            ${destroy}
             \`\`\`
 
             ---
@@ -420,7 +417,7 @@ jobs:
             > Changes detected in existing infrastructure
 
             \`\`\`
-            ${{ steps.tf-summary.outputs.modify || "None" }}
+            ${modify}
             \`\`\`
 
             ---
