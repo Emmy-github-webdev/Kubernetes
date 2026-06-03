@@ -330,34 +330,32 @@ jobs:
             ${{ env.TF_WORKING_DIR }}/tfplan.txt
 
       ###########################################
-      # EXTRACT CHANGES
+      # Terraform Summary Report
       ###########################################
-      - name: Extract Terraform Changes
-        id: tf-changes
+      - name: Build Terraform Summary Report
+        id: tf-summary
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
 
           jq -r '
             .resource_changes[]
             | select(.change.actions | index("delete"))
-            | "- " + .address
-          ' tfplan.json > deleted.txt
+            | "\(.address)"
+          ' tfplan.json | sort | uniq -c | sort -nr > destroy.txt
 
           jq -r '
             .resource_changes[]
             | select(.change.actions | index("update"))
-            | "- " + .address
-          ' tfplan.json > modified.txt
+            | "\(.address)"
+          ' tfplan.json | sort | uniq -c | sort -nr > modify.txt
 
-          {
-            echo "deleted<<EOF"
-            cat deleted.txt
-            echo EOF
+          echo "destroy<<EOF" >> $GITHUB_OUTPUT
+          cat destroy.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-            echo "modified<<EOF"
-            cat modified.txt
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
+          echo "modify<<EOF" >> $GITHUB_OUTPUT
+          cat modify.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       #################################################
       # PR COMMENT
@@ -372,57 +370,66 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
-            const deleted = `${{ steps.tf-changes.outputs.deleted }}`.trim();
-            const modified = `${{ steps.tf-changes.outputs.modified }}`.trim();
-
             const runUrl =
               `https://github.com/${context.repo.owner}/${context.repo.repo}` +
               `/actions/runs/${context.runId}`;
 
-            const destroySection = deleted
-              ? `
-            ## 🚨 Resources to be Destroyed
-
-            Deleting infrastructure can cause downtime or data loss.
-
-            ${deleted}
-            `
+            const total =
+              Number(`${{ steps.plan-summary.outputs.add }}`) +
+              Number(`${{ steps.plan-summary.outputs.change }}`) +
+              Number(`${{ steps.plan-summary.outputs.destroy }}`);
               : '';
 
-            const modifySection = modified
-              ? `
-            ## ⚠️ Resources to be Modified
-
-            Review these changes carefully before approval.
-
-            ${modified}
-            `
-              : '';
 
             const planPath = path.join('${{ env.TF_WORKING_DIR }}', 'tfplan.txt');
             const plan = fs.readFileSync(planPath, 'utf8');
 
             const body = `# 🚀 Terraform Plan — ${{ inputs.environment }}
 
-            ## 📊 Terraform Changes
+            ### 📊 Terraform Changes
 
             | 🟢 Create | 🟡 Update | 🔴 Destroy |
             |----------:|----------:|-----------:|
             | **${{ steps.plan-summary.outputs.add }}** | **${{ steps.plan-summary.outputs.change }}** | **${{ steps.plan-summary.outputs.destroy }}** |
 
-            ## 🔒 Checkov Security Summary
+            ### 🔒 Checkov Security Summary
 
             | ✅ Passed | ❌ Failed | ⏭️ Skipped |
             |---------:|---------:|----------:|
             | **${{ steps.checkov-summary.outputs.passed }}** | **${{ steps.checkov-summary.outputs.failed }}** | **${{ steps.checkov-summary.outputs.skipped }}** |
 
-            ${destroySection}
+            ## 📊 Plan Overview
+            Plan: **${{ steps.plan-summary.outputs.add }} to add, ${{
+              steps.plan-summary.outputs.change
+            }} to change, ${{ steps.plan-summary.outputs.destroy }} to destroy**
 
-            ${modifySection}
+            ---
 
-            ## 📄 Full Terraform Plan
+            ### 🚨 Resources to be Destroyed
 
-            [The complete Terraform plan is available in the workflow artifacts](${runUrl})
+            > ⚠️ These resources will be permanently removed
+
+            \`\`\`
+            ${{ steps.tf-summary.outputs.destroy || "None" }}
+            \`\`\`
+
+            ---
+
+            ## ⚠️ Resources to be Modified
+
+            > Changes detected in existing infrastructure
+
+            \`\`\`
+            ${{ steps.tf-summary.outputs.modify || "None" }}
+            \`\`\`
+
+            ---
+
+            ## 📄 Full Plan
+
+            Plan is too large to display inline.
+
+            👉 [View full Terraform plan in GitHub Actions](${runUrl})
             `;
 
             const comments = await github.rest.issues.listComments({
