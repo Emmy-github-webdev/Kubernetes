@@ -479,13 +479,14 @@ jobs:
             github.event_name == 'workflow_dispatch'
           ) &&
           inputs.tf_action == 'apply'
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve tfplan
 
       - name: Terraform Destroy
         if: |
           github.event_name == 'workflow_dispatch' &&
           inputs.tf_action == 'destroy'
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           terraform destroy \
-            -auto-approve \
-        working-directory: ${{ env.TF_WORKING_DIR }}
+            -auto-approve
