@@ -425,7 +425,7 @@ jobs:
 
             The complete Terraform plan is available in the workflow artifacts.
 
-            const planLink = `[📄 View Full Terraform Plan](${runUrl})
+            const planLink = `[📄 View Full Terraform Plan](${runUrl})`;
 
             `;
 
