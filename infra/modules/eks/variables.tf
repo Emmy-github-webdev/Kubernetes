@@ -13,8 +13,3 @@ variable "private_subnet_ids" {
   description = "List of private subnet IDs for the EKS cluster"
   type        = list(string)
 }
-
-variable "sg_eks_cluster_id" {
-  description = "Security Group ID for the EKS cluster"
-  type        = string
-}
