@@ -282,11 +282,8 @@ jobs:
         id: plan-summary
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
-
           ADD=$(jq '[.resource_changes[]?.change.actions?] | flatten | map(select(. == "create")) | length' tfplan.json)
-
           CHANGE=$(jq '[.resource_changes[]?.change.actions?] | flatten | map(select(. == "update")) | length' tfplan.json)
-
           DESTROY=$(jq '[.resource_changes[]?.change.actions?] | flatten | map(select(. == "delete")) | length' tfplan.json)
 
           echo "add=$ADD" >> $GITHUB_OUTPUT
@@ -349,30 +346,29 @@ jobs:
             const plan = fs.readFileSync(planPath, 'utf8');
 
             const body = `
-            ## Terraform Plan - ${{ inputs.environment }}
 
-            ### Terraform Changes
+            # 🚀 Terraform Plan — ${{ inputs.environment }}
 
-            | Action | Count |
-            |---|---|
-            | Add | ${{ steps.plan-summary.outputs.add }} |
-            | Change | ${{ steps.plan-summary.outputs.change }} |
-            | Destroy | ${{ steps.plan-summary.outputs.destroy }} |
+            ⚠️ Infrastructure changes detected.
 
-            ### Checkov Summary
+            |                                 🟢 Create |                                    🟡 Update |                                    🔴 Destroy |
+            | ----------------------------------------: | -------------------------------------------: | --------------------------------------------: |
+            | **${{ steps.plan-summary.outputs.add }}** | **${{ steps.plan-summary.outputs.change }}** | **${{ steps.plan-summary.outputs.destroy }}** |
 
-            | Result | Count |
-            |---|---|
-            | Passed | ${{ steps.checkov-summary.outputs.passed }} |
-            | Failed | ${{ steps.checkov-summary.outputs.failed }} |
-            | Skipped | ${{ steps.checkov-summary.outputs.skipped }} |
+            # 🔒 Checkov Security Summary
+
+            ❌ Checkov findings require attention.
+
+            |                                        ✅ Passed |                                        ❌ Failed |                                       ⏭️ Skipped |
+            | ----------------------------------------------: | ----------------------------------------------: | -----------------------------------------------: |
+            | **${{ steps.checkov-summary.outputs.passed }}** | **${{ steps.checkov-summary.outputs.failed }}** | **${{ steps.checkov-summary.outputs.skipped }}** |
 
             <details>
-            <summary>Terraform Plan</summary>
+            <summary><strong>📄 Terraform Plan Output</strong></summary>
 
-            \`\`\`terraform
+            ```terraform
             ${plan.substring(0, 60000)}
-            \`\`\`
+            ```
 
             </details>
             `;
