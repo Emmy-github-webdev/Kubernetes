@@ -33,6 +33,13 @@ resource "aws_eks_cluster" "eks_cluster" {
     subnet_ids              = var.private_subnet_ids
   }
 
+  encryption_config {
+    resources = ["secrets"]
+    provider {
+      key_arn = var.kms_key_arn
+    }
+  }
+  enabled_cluster_log_types = ["api", "audit", "authenticator","controllerManager","scheduler"]
 
   tags = {
     Name = "${var.tags.project}-${var.tags.environment}-eks-cluster"
