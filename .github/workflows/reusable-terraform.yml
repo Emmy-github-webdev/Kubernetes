@@ -366,7 +366,9 @@ jobs:
             <details>
             <summary><strong>📄 Terraform Plan Output</strong></summary>
 
+            \`\`\`terraform
             ${plan.substring(0, 60000)}
+            \`\`\`
 
             </details>
             `;
