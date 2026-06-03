@@ -119,7 +119,7 @@ WorkerNodeSG → WorkerNodeSG
 ```
 Enable:
 
-endpointPublicAccess:true
+endpointPublicAccess:false
 endpointPrivateAccess:true
 
 #---------------------------------------
