@@ -355,20 +355,18 @@ jobs:
             const failed = parseInt('${{ steps.checkov-summary.outputs.failed }}');
             const skipped = parseInt('${{ steps.checkov-summary.outputs.skipped }}');
 
-            const body = `
-# 🔧 Terraform Plan - \`${{ inputs.environment }}\`
+            const body = `# 🔧 Terraform Plan - ${{ inputs.environment }}
 
 ## 📊 Infrastructure Changes
 | 🆕 | 🔄 | 🗑️ |
 |:---:|:---:|:---:|
 | **${add}** Added | **${change}** Changed | **${destroy}** Destroyed |
-| \`+ Resources\` | \`~ Modified\` | \`- Removed\` |
+| ➕ Resources | ➜ Modified | ➖ Removed |
 
 ## 🔐 Security Analysis (Checkov)
 | ✅ Passed | ⚠️ Skipped | ❌ Failed |
 |:---:|:---:|:---:|
 | **${passed}** | **${skipped}** | **${failed}** |
-
 
 <details open>
 <summary><strong>📄 Terraform Plan Details</strong></summary>
@@ -376,11 +374,9 @@ jobs:
 \`\`\`terraform
 ${plan.substring(0, 60000)}
 \`\`\`
-
 </details>
 
-
-**Environment**: \`${{ inputs.environment }}\` | **Status**: ${destroy > 0 ? '⚠️ Destructive changes detected' : '✅ Safe to apply'}
+**Environment**: ${{ inputs.environment }} | **Status**: ${destroy > 0 ? '⚠️ Destructive changes detected' : '✅ Safe to apply'}
             `;
 
             const comments = await github.rest.issues.listComments({
