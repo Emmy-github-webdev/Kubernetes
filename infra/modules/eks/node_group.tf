@@ -13,7 +13,7 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
 }
 
 resource "aws_iam_role" "eks_nodegroup_role" {
-  name = "${var.tags.project}-${var.tags.environment}-eks-nodegroup-role"
+  name = "${var.tags.project}-${var.tags.environment}-nodegroup-role"
 
   assume_role_policy = jsonencode({
     Statement = [{
