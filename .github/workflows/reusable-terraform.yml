@@ -329,6 +329,36 @@ jobs:
             ${{ env.TF_WORKING_DIR }}/tfplan.json 
             ${{ env.TF_WORKING_DIR }}/tfplan.txt
 
+      ###########################################
+      # EXTRACT CHANGES
+      ###########################################
+      - name: Extract Terraform Changes
+        id: tf-changes
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+
+          jq -r '
+            .resource_changes[]
+            | select(.change.actions | index("delete"))
+            | "- " + .address
+          ' tfplan.json > deleted.txt
+
+          jq -r '
+            .resource_changes[]
+            | select(.change.actions | index("update"))
+            | "- " + .address
+          ' tfplan.json > modified.txt
+
+          {
+            echo "deleted<<EOF"
+            cat deleted.txt
+            echo EOF
+
+            echo "modified<<EOF"
+            cat modified.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
       #################################################
       # PR COMMENT
       #################################################
@@ -342,35 +372,61 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
+            const deleted = `${{ steps.tf-changes.outputs.deleted }}`.trim();
+            const modified = `${{ steps.tf-changes.outputs.modified }}`.trim();
+
+            const runUrl =
+              `https://github.com/${context.repo.owner}/${context.repo.repo}` +
+              `/actions/runs/${context.runId}`;
+
+            const destroySection = deleted
+              ? `
+            ## 🚨 Resources to be Destroyed
+
+            Deleting infrastructure can cause downtime or data loss.
+
+            ${deleted}
+            `
+              : '';
+
+            const modifySection = modified
+              ? `
+            ## ⚠️ Resources to be Modified
+
+            Review these changes carefully before approval.
+
+            ${modified}
+            `
+              : '';
+
             const planPath = path.join('${{ env.TF_WORKING_DIR }}', 'tfplan.txt');
             const plan = fs.readFileSync(planPath, 'utf8');
 
             const body = `
-
             # 🚀 Terraform Plan — ${{ inputs.environment }}
 
-            ⚠️ Infrastructure changes detected.
+            ## 📊 Terraform Changes
 
-            |                                 🟢 Create |                                    🟡 Update |                                    🔴 Destroy |
-            | ----------------------------------------: | -------------------------------------------: | --------------------------------------------: |
+            | 🟢 Create | 🟡 Update | 🔴 Destroy |
+            |----------:|----------:|-----------:|
             | **${{ steps.plan-summary.outputs.add }}** | **${{ steps.plan-summary.outputs.change }}** | **${{ steps.plan-summary.outputs.destroy }}** |
 
-            # 🔒 Checkov Security Summary
+            ## 🔒 Checkov Security Summary
 
-            ❌ Checkov findings require attention.
-
-            |                                        ✅ Passed |                                        ❌ Failed |                                       ⏭️ Skipped |
-            | ----------------------------------------------: | ----------------------------------------------: | -----------------------------------------------: |
+            | ✅ Passed | ❌ Failed | ⏭️ Skipped |
+            |---------:|---------:|----------:|
             | **${{ steps.checkov-summary.outputs.passed }}** | **${{ steps.checkov-summary.outputs.failed }}** | **${{ steps.checkov-summary.outputs.skipped }}** |
 
-            <details>
-            <summary><strong>📄 Terraform Plan Output</strong></summary>
+            ${destroySection}
 
-            \`\`\`terraform
-            ${plan.substring(0, 60000)}
-            \`\`\`
+            ${modifySection}
 
-            </details>
+            ## 📄 Full Terraform Plan
+
+            The complete Terraform plan is available in the workflow artifacts.
+
+            const planLink = `[📄 View Full Terraform Plan](${runUrl})
+
             `;
 
             const comments = await github.rest.issues.listComments({
