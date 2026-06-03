@@ -37,5 +37,5 @@ module "eks" {
   source               = "../../modules/eks"
   tags                 = module.tags.common_tags
   private_subnet_ids   = module.vpc.private_subnet_ids
-  eks_cluster_role_arn = module.eks_cluster_role_arn
+  eks_cluster_role_arn = module.security_groups.eks_cluster_role_arn
 }
