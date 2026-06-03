@@ -402,8 +402,7 @@ jobs:
             const planPath = path.join('${{ env.TF_WORKING_DIR }}', 'tfplan.txt');
             const plan = fs.readFileSync(planPath, 'utf8');
 
-            const body = `
-            # 🚀 Terraform Plan — ${{ inputs.environment }}
+            const body = `# 🚀 Terraform Plan — ${{ inputs.environment }}
 
             ## 📊 Terraform Changes
 
@@ -423,10 +422,7 @@ jobs:
 
             ## 📄 Full Terraform Plan
 
-            The complete Terraform plan is available in the workflow artifacts.
-
-            const planLink = `[📄 View Full Terraform Plan](${runUrl})`;
-
+            [The complete Terraform plan is available in the workflow artifacts](${runUrl})
             `;
 
             const comments = await github.rest.issues.listComments({
