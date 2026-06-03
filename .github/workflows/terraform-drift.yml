@@ -34,7 +34,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::123456789012:role/github-terraform-role
-          aws-region: eu-west-1
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -42,13 +42,14 @@ jobs:
           terraform_version: "1.8.5"
 
       - name: Terraform Init
+        working-directory: infra/environments/${{ matrix.environment }}
         run: terraform init -input=false
 
       - name: Terraform Drift Check
+        working-directory: infra/environments/${{ matrix.environment }}
         run: |
           terraform plan \
-            -detailed-exitcode \
-            -var-file=environments/${{ matrix.environment }}/terraform.tfvars
+            -detailed-exitcode
 
       # Exit code meanings:
       # 0 = no drift
