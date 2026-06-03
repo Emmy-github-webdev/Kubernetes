@@ -348,33 +348,39 @@ jobs:
             const planPath = path.join('${{ env.TF_WORKING_DIR }}', 'tfplan.txt');
             const plan = fs.readFileSync(planPath, 'utf8');
 
+            const add = parseInt('${{ steps.plan-summary.outputs.add }}');
+            const change = parseInt('${{ steps.plan-summary.outputs.change }}');
+            const destroy = parseInt('${{ steps.plan-summary.outputs.destroy }}');
+            const passed = parseInt('${{ steps.checkov-summary.outputs.passed }}');
+            const failed = parseInt('${{ steps.checkov-summary.outputs.failed }}');
+            const skipped = parseInt('${{ steps.checkov-summary.outputs.skipped }}');
+
             const body = `
-            ## Terraform Plan - ${{ inputs.environment }}
+# 🔧 Terraform Plan - \`${{ inputs.environment }}\`
 
-            ### Terraform Changes
+## 📊 Infrastructure Changes
+| 🆕 | 🔄 | 🗑️ |
+|:---:|:---:|:---:|
+| **${add}** Added | **${change}** Changed | **${destroy}** Destroyed |
+| \`+ Resources\` | \`~ Modified\` | \`- Removed\` |
 
-            | Action | Count |
-            |---|---|
-            | Add | ${{ steps.plan-summary.outputs.add }} |
-            | Change | ${{ steps.plan-summary.outputs.change }} |
-            | Destroy | ${{ steps.plan-summary.outputs.destroy }} |
+## 🔐 Security Analysis (Checkov)
+| ✅ Passed | ⚠️ Skipped | ❌ Failed |
+|:---:|:---:|:---:|
+| **${passed}** | **${skipped}** | **${failed}** |
 
-            ### Checkov Summary
 
-            | Result | Count |
-            |---|---|
-            | Passed | ${{ steps.checkov-summary.outputs.passed }} |
-            | Failed | ${{ steps.checkov-summary.outputs.failed }} |
-            | Skipped | ${{ steps.checkov-summary.outputs.skipped }} |
+<details open>
+<summary><strong>📄 Terraform Plan Details</strong></summary>
 
-            <details>
-            <summary>Terraform Plan</summary>
+\`\`\`terraform
+${plan.substring(0, 60000)}
+\`\`\`
 
-            \`\`\`terraform
-            ${plan.substring(0, 60000)}
-            \`\`\`
+</details>
 
-            </details>
+
+**Environment**: \`${{ inputs.environment }}\` | **Status**: ${destroy > 0 ? '⚠️ Destructive changes detected' : '✅ Safe to apply'}
             `;
 
             const comments = await github.rest.issues.listComments({
