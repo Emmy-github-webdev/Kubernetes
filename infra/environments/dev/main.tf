@@ -41,4 +41,5 @@ module "eks" {
   tags               = module.tags.common_tags
   kms_key_arn        = module.cloudwatch.kms_key_arn
   private_subnet_ids = module.vpc.private_subnet_ids
+  eks_vpc_id         = module.vpc.vpc_id
 }
