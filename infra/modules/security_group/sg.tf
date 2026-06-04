@@ -66,12 +66,14 @@ resource "aws_vpc_security_group_egress_rule" "eks_worker_all_out" {
   cidr_ipv4   = "0.0.0.0/0"
 }
 
-# Restrict default security group
+# Restrict default security group to deny all traffic
 resource "aws_default_security_group" "default" {
   vpc_id = var.eks_vpc_id
 
+  # Completely restrict all inbound traffic
   ingress = []
 
+  # Completely restrict all outbound traffic  
   egress = []
 
   tags = {
