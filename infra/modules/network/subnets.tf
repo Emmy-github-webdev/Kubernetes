@@ -29,6 +29,8 @@ resource "aws_subnet" "eks_private_subnets" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.tags.project}-${var.tags.environment}-private-subnet-${each.key}"
+    Name                                                                            = "${var.tags.project}-${var.tags.environment}-private-subnet-${each.key}"
+    "kubernetes.io/cluster/${var.tags.project}-${var.tags.environment}-eks-cluster" = "shared"
+
   }
 }
