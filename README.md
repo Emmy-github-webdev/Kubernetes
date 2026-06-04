@@ -36,7 +36,7 @@ eksctlversion
 
 [](./pub_priv_eks_pg.png)
 
-## Step By Step Creation of Resorces
+## Step By Step Creation of Resources
 
 ### Phase 1 - Network
 
@@ -302,7 +302,33 @@ ADDRESS:
 xxxxxxxx.elb.amazonaws.com
 ```
 
-### Phase 8 - Functional Testing
+### Phase 8 - GitOps Platform
+- Create namespace
+- Install ArgoCD
+
+Verify
+
+```
+kubectl get pods -n argocd
+
+# Expected
+
+argocd-server
+argocd-repo-server
+argocd-application-controller
+Running
+```
+- Install SonarQube Server
+
+### Phase 9 - DevSecOps Platform
+- Namespace: sonarqube
+- Deploy 
+  - SonarQube
+  - PostgreSQL
+  - Persistent Volume
+  - Ingress
+
+### Phase 10 - Functional Testing
 
 - Test 1 - Public EKS Endpoint
 

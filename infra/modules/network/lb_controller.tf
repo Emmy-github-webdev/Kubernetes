@@ -45,6 +45,6 @@ data "aws_iam_policy_document" "irsa_assume_role" {
 }
 
 resource "aws_iam_role" "irsa_role" {
-  name               = "aws-load-balancer-controller"
+  name               = "${var.tags.project}-${var.tags.environment}-irsa-role"
   assume_role_policy = data.aws_iam_policy_document.irsa_assume_role.json
 }
