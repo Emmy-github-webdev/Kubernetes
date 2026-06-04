@@ -437,7 +437,8 @@ Confirm:
 Notes
 
 Sonarcube
-auto scaling
 trivy
 Argocd
-Cloudwatch
+code quality analysis
+Dependency check
+File scan
