@@ -10,11 +10,11 @@ locals {
 resource "aws_vpc_endpoint" "interface" {
   for_each = local.interface_endpoints
 
-  vpc_id              = aws_vpc.eks_vpc.id
-  service_name        = "com.amazonaws.${var.tags.region}.${each.value}"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = values(aws_subnet.eks_private_subnets)[*].id
-  security_group_ids  = [aws_security_group.vpce.id]
+  vpc_id            = aws_vpc.eks_vpc.id
+  service_name      = "com.amazonaws.${var.tags.region}.${each.value}"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = values(aws_subnet.eks_private_subnets)[*].id
+  # security_group_ids  = [aws_security_group.vpce.id]
   private_dns_enabled = true
 
   tags = {
