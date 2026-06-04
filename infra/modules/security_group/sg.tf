@@ -1,11 +1,11 @@
 # Cluster Security Group Used by the EKS control plane
 resource "aws_security_group" "eks_cluster" {
-  name        = "${var.tags.project}-${var.tags.environment}-cluster-sg"
+  name        = "${var.tags.project}-${var.tags.environment}-eks-cluster-sg"
   description = "EKS Cluster Security Group used by the EKS control plane"
   vpc_id      = var.eks_vpc_id
 
   tags = {
-    Name = "${var.tags.project}-${var.tags.environment}-cluster-sg"
+    Name = "${var.tags.project}-${var.tags.environment}-eks-cluster-sg"
   }
 }
 
