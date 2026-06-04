@@ -1,5 +1,5 @@
 resource "aws_iam_role" "eks_cluster_role" {
-  name = "${var.tags.project}-${var.tags.environment}-cluster-role"
+  name = "${var.tags.project}-${var.tags.environment}-eks-cluster-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -23,9 +23,9 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
 }
 
 resource "aws_eks_cluster" "eks_cluster" {
-  name     = "${var.tags.project}-${var.tags.environment}-cluster"
+  name     = "${var.tags.project}-${var.tags.environment}-eks-cluster"
   role_arn = aws_iam_role.eks_cluster_role.arn
-  version  = "1.34"
+  version  = "1.33"
 
   vpc_config {
     endpoint_private_access = true
@@ -43,6 +43,6 @@ resource "aws_eks_cluster" "eks_cluster" {
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   tags = {
-    Name = "${var.tags.project}-${var.tags.environment}-cluster"
+    Name = "${var.tags.project}-${var.tags.environment}-eks-cluster"
   }
 }
