@@ -9,6 +9,6 @@ output "oidc_issuer_url" {
 }
 
 output "eks_nodes_role_id" {
-  value       = aws_iam_role.eks_nodes_role.id
+  value       = aws_iam_role.eks_nodegroup_role.id
   description = "IAM Role ID for EKS worker nodes"
 }
