@@ -15,7 +15,7 @@ module "vpc" {
   cloudwatch_log_group_arn   = module.cloudwatch.vpc_flow_logs_cloudwatch_loggroup_arn
   vpc_flow_logs_iam_role_arn = module.iam.vpc_flow_logs_iam_role_arn
   cluster_name               = module.eks.cluster_name
-  sg_eks_nodes_id            = module.security_groups.eks_nodes_role_id
+  sg_eks_nodes_id            = module.eks.eks_nodes_role_id
   oidc_issuer_url            = module.eks.oidc_issuer_url
 }
 
