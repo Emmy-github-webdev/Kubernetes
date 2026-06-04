@@ -11,7 +11,7 @@ resource "aws_launch_template" "eks_nodes" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name = "${var.tags.project}-${var.tags.environment}-eks-node"
+      Name = "${var.tags.project}-${var.tags.environment}-node"
     }
   }
 

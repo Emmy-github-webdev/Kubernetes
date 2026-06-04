@@ -23,7 +23,7 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
 }
 
 resource "aws_eks_cluster" "eks_cluster" {
-  name     = "${var.tags.project}-${var.tags.environment}-eks-cluster"
+  name     = "${var.tags.project}-${var.tags.environment}-cluster"
   role_arn = aws_iam_role.eks_cluster_role.arn
   version  = "1.34"
 
@@ -43,7 +43,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   tags = {
-    Name = "${var.tags.project}-${var.tags.environment}-eks-cluster"
+    Name = "${var.tags.project}-${var.tags.environment}-cluster"
   }
 }
 
