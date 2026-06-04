@@ -45,3 +45,8 @@ variable "sg_eks_nodes_id" {
   description = "Security Group ID for EKS worker nodes, used for VPC endpoint security group rules"
   type        = string
 }
+
+variable "oidc_issuer_url" {
+  description = "EKS Cluster OIDC Issuer URL for creating OIDC provider"
+  type        = string
+}

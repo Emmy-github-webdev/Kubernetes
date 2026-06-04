@@ -1,16 +1,11 @@
-# Fetch EKS cluster data
-data "aws_eks_cluster" "cluster" {
-  name = var.cluster_name
-}
-
 # Retrieve TLS certificate from the OIDC issuer
 data "tls_certificate" "eks_oidc" {
-  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+  url = var.oidc_issuer_url
 }
 
 # Create IAM OIDC Provider
 resource "aws_iam_openid_connect_provider" "eks_oidc_provider" {
-  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+  url = var.oidc_issuer_url
 
   client_id_list = [
     "sts.amazonaws.com"
