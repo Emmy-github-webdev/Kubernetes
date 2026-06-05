@@ -470,3 +470,11 @@ Dependency check
 File scan
 
 
+Error
+
+╷
+│ Error: waiting for EKS Node Group (eks-dev-cluster:managed) create: unexpected state 'CREATE_FAILED', wanted target 'ACTIVE'. last error: i-027f9bab4d5e9f73a, i-03d7c19a02ceb71ac: NodeCreationFailure: Instances failed to join the kubernetes cluster
+│ 
+│   with module.eks.aws_eks_node_group.eks_managed_node_group,
+│   on ../../modules/eks/node_group.tf line 23, in resource "aws_eks_node_group" "eks_managed_node_group":
+│   23: resource "aws_eks_node_group" "eks_managed_node_group" {

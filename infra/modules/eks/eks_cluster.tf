@@ -25,13 +25,13 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "${var.tags.project}-${var.tags.environment}-cluster"
   role_arn = aws_iam_role.eks_cluster_role.arn
-  version  = "1.34"
+  version  = "1.33"
 
   vpc_config {
     endpoint_private_access = true
     endpoint_public_access  = true
     subnet_ids              = var.private_subnet_ids
-    security_group_ids      = [aws_security_group.eks_cluster.id]
+    # security_group_ids      = [aws_security_group.eks_cluster.id]
   }
 
   encryption_config {
@@ -68,10 +68,12 @@ resource "aws_vpc_security_group_ingress_rule" "eks_cluster_https_from_nodes" {
   to_port     = 443
 }
 
-resource "aws_vpc_security_group_egress_rule" "eks_cluster_all_out" {
-  description       = "Allow all outbound traffic from the EKS control plane"
-  security_group_id = aws_security_group.eks_cluster.id
+resource "aws_vpc_security_group_egress_rule" "eks_cluster_to_workers" {
+  security_group_id            = aws_security_group.eks_cluster.id
+  description                  = "Allow EKS control plane to communicate with worker nodes on kubelet port"
+  referenced_security_group_id = aws_security_group.eks_worker_nodes.id
 
-  ip_protocol = "-1"
-  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "tcp"
+  from_port   = 1025
+  to_port     = 65535
 }

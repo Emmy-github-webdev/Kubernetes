@@ -2,27 +2,30 @@ resource "aws_launch_template" "eks_nodes" {
   name_prefix   = "eks-node-"
   instance_type = "t3.medium"
 
-  network_interfaces {
-    security_groups             = [aws_security_group.eks_worker_nodes.id]
-    associate_public_ip_address = false
-    delete_on_termination       = true
-  }
+  vpc_security_group_ids = [
+    aws_security_group.eks_worker_nodes.id
+  ]
+  # network_interfaces {
+  #   security_groups             = [aws_security_group.eks_worker_nodes.id]
+  #   associate_public_ip_address = false
+  #   delete_on_termination       = true
+  # }
 
-  tag_specifications {
-    resource_type = "instance"
-    tags = {
-      Name = "${var.tags.project}-${var.tags.environment}-node"
-    }
-  }
+  # tag_specifications {
+  #   resource_type = "instance"
+  #   tags = {
+  #     Name = "${var.tags.project}-${var.tags.environment}-node"
+  #   }
+  # }
 
-  lifecycle {
-    create_before_destroy = true
-  }
+  # lifecycle {
+  #   create_before_destroy = true
+  # }
 }
 
 resource "aws_eks_node_group" "eks_managed_node_group" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
-  node_group_name = "managed"
+  node_group_name = "${var.tags.project}-${var.tags.environment}-node-group"
   node_role_arn   = aws_iam_role.eks_nodegroup_role.arn
   subnet_ids      = var.private_subnet_ids
 
@@ -36,6 +39,17 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
     min_size     = 1
     max_size     = 5
   }
+
+  update_config {
+    max_unavailable = 1
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eks-AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.eks-AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.eks-AmazonEC2ContainerRegistryReadOnly,
+  ]
+
 }
 
 resource "aws_iam_role" "eks_nodegroup_role" {
@@ -97,8 +111,8 @@ resource "aws_vpc_security_group_ingress_rule" "eks_cluster_to_worker_kubelet" {
   security_group_id            = aws_security_group.eks_worker_nodes.id
   referenced_security_group_id = aws_security_group.eks_cluster.id
   ip_protocol                  = "tcp"
-  from_port                    = 10250
-  to_port                      = 10250
+  from_port                    = 1025
+  to_port                      = 65535
 }
 
 # Node-to-Node Communication
