@@ -36,11 +36,6 @@ resource "aws_iam_role" "eks_admin" {
   })
 }
 
-# resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-#   role       = aws_iam_role.eks_cluster_role.name
-# }
-
 resource "aws_eks_access_entry" "admin" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
   principal_arn = aws_iam_role.eks_admin.arn
@@ -107,15 +102,20 @@ resource "aws_vpc_security_group_ingress_rule" "eks_cluster_https_from_nodes" {
   to_port     = 443
 }
 
-resource "aws_eks_access_entry" "github_dev" {
+# GitHub OIDC access
+locals {
+  github_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
+}
+
+resource "aws_eks_access_entry" "github" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
+  principal_arn = locals.github_role_arn
   type          = "STANDARD"
 }
 
-resource "aws_eks_access_policy_association" "github_dev" {
+resource "aws_eks_access_policy_association" "github" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
+  principal_arn = locals.github_role_arn
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
