@@ -107,12 +107,18 @@ resource "aws_vpc_security_group_ingress_rule" "eks_cluster_https_from_nodes" {
   to_port     = 443
 }
 
-# resource "aws_vpc_security_group_egress_rule" "eks_cluster_to_workers" {
-#   security_group_id            = aws_security_group.eks_cluster.id
-#   description                  = "Allow EKS control plane to communicate with worker nodes on kubelet port"
-#   referenced_security_group_id = aws_security_group.eks_worker_nodes.id
+resource "aws_eks_access_entry" "github_dev" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
+  type          = "STANDARD"
+}
 
-#   ip_protocol = "tcp"
-#   from_port   = 1025
-#   to_port     = 65535
-# }
+resource "aws_eks_access_policy_association" "github_dev" {
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+}
