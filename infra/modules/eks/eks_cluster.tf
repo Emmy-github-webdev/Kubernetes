@@ -62,6 +62,10 @@ resource "aws_eks_cluster" "eks_cluster" {
   role_arn = aws_iam_role.eks_cluster_role.arn
   version  = "1.33"
 
+  access_config {
+    authentication_mode = "API"
+  }
+
   vpc_config {
     endpoint_private_access = true
     endpoint_public_access  = true
