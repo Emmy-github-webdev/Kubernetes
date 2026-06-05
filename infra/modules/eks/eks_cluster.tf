@@ -34,15 +34,10 @@ resource "aws_iam_role" "eks_admin" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks_cluster_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "eks_admin_policy" {
-  role       = aws_iam_role.eks_admin.name
-  policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-}
+# resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+#   role       = aws_iam_role.eks_cluster_role.name
+# }
 
 resource "aws_eks_access_entry" "admin" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
@@ -52,7 +47,7 @@ resource "aws_eks_access_entry" "admin" {
 
 resource "aws_eks_access_policy_association" "admin" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = vaws_iam_role.eks_admin.arn
+  principal_arn = aws_iam_role.eks_admin.arn
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
@@ -69,15 +64,15 @@ resource "aws_eks_cluster" "eks_cluster" {
     endpoint_private_access = true
     endpoint_public_access  = true
     subnet_ids              = var.private_subnet_ids
-    # security_group_ids      = [aws_security_group.eks_cluster.id]
+    security_group_ids      = [aws_security_group.eks_cluster.id]
   }
 
-  encryption_config {
-    resources = ["secrets"]
-    provider {
-      key_arn = var.kms_key_arn
-    }
-  }
+  # encryption_config {
+  #   resources = ["secrets"]
+  #   provider {
+  #     key_arn = var.kms_key_arn
+  #   }
+  # }
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   tags = {
@@ -106,12 +101,12 @@ resource "aws_vpc_security_group_ingress_rule" "eks_cluster_https_from_nodes" {
   to_port     = 443
 }
 
-resource "aws_vpc_security_group_egress_rule" "eks_cluster_to_workers" {
-  security_group_id            = aws_security_group.eks_cluster.id
-  description                  = "Allow EKS control plane to communicate with worker nodes on kubelet port"
-  referenced_security_group_id = aws_security_group.eks_worker_nodes.id
+# resource "aws_vpc_security_group_egress_rule" "eks_cluster_to_workers" {
+#   security_group_id            = aws_security_group.eks_cluster.id
+#   description                  = "Allow EKS control plane to communicate with worker nodes on kubelet port"
+#   referenced_security_group_id = aws_security_group.eks_worker_nodes.id
 
-  ip_protocol = "tcp"
-  from_port   = 1025
-  to_port     = 65535
-}
+#   ip_protocol = "tcp"
+#   from_port   = 1025
+#   to_port     = 65535
+# }
