@@ -4,6 +4,7 @@ locals {
     "ecr.dkr",
     "sts",
     "logs",
+    "eks",
   ])
 }
 
@@ -14,7 +15,7 @@ resource "aws_vpc_endpoint" "interface" {
   service_name      = "com.amazonaws.${var.tags.region}.${each.value}"
   vpc_endpoint_type = "Interface"
   subnet_ids        = values(aws_subnet.eks_private_subnets)[*].id
-  # security_group_ids  = [aws_security_group.vpce.id]
+  security_group_ids  = [aws_security_group.vpce.id]
   private_dns_enabled = true
 
   tags = {
@@ -53,6 +54,6 @@ resource "aws_security_group" "vpce" {
     protocol        = "tcp"
     from_port       = 443
     to_port         = 443
-    security_groups = [var.sg_eks_nodes_id]
+    # security_groups = [var.sg_eks_nodes_id]
   }
 }

@@ -70,17 +70,10 @@ resource "aws_vpc_security_group_ingress_rule" "eks_cluster_https_from_nodes" {
 
 resource "aws_vpc_security_group_egress_rule" "eks_cluster_to_workers" {
   security_group_id            = aws_security_group.eks_cluster.id
+  description                  = "Allow EKS control plane to communicate with worker nodes on kubelet port"
   referenced_security_group_id = aws_security_group.eks_worker_nodes.id
 
   ip_protocol = "tcp"
   from_port   = 1025
   to_port     = 65535
-}
-
-resource "aws_vpc_security_group_egress_rule" "eks_cluster_all_out" {
-  description       = "Allow all outbound traffic from the EKS control plane"
-  security_group_id = aws_security_group.eks_cluster.id
-
-  ip_protocol = "-1"
-  cidr_ipv4   = "0.0.0.0/0"
 }
