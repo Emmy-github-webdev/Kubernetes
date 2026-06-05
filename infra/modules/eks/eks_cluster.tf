@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "eks_cluster_role" {
   name = "${var.tags.project}-${var.tags.environment}-cluster-role"
   assume_role_policy = jsonencode({
