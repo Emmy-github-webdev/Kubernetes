@@ -19,6 +19,11 @@ resource "aws_iam_role" "eks_cluster_role" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy_attachment" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
+
 # resource "aws_iam_role" "eks_admin" {
 #   name = "${var.tags.project}-${var.tags.environment}-eks-admin"
 
@@ -96,6 +101,10 @@ resource "aws_eks_cluster" "eks_cluster" {
   tags = {
     Name = "${var.tags.project}-${var.tags.environment}-cluster"
   }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eks_cluster_policy_attachment
+  ]
 }
 
 
