@@ -17,6 +17,7 @@ resource "aws_eks_access_policy_association" "github" {
     type = "cluster"
   }
 }
+
 # locals {
 #   github_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
 # }
