@@ -109,7 +109,9 @@ resource "aws_iam_role" "eks_admin" {
 locals {
   eks_admin_principals = [
     aws_iam_role.eks_admin.arn,
-    aws_iam_role.eks_admin_role.arn
+    aws_iam_role.eks_admin_role.arn,
+    aws_iam_role.eks_admin.arn,
+    "arn:aws:iam::579871530627:user/emmy"
   ]
 }
 
