@@ -1,27 +1,27 @@
-resource "aws_launch_template" "eks_nodes" {
-  name_prefix   = "eks-node-"
-  instance_type = "t3.medium"
+# resource "aws_launch_template" "eks_nodes" {
+#   name_prefix   = "eks-node-"
+#   instance_type = "t3.medium"
 
-  vpc_security_group_ids = [
-    aws_security_group.eks_worker_nodes.id
-  ]
-  # network_interfaces {
-  #   security_groups             = [aws_security_group.eks_worker_nodes.id]
-  #   associate_public_ip_address = false
-  #   delete_on_termination       = true
-  # }
+#   vpc_security_group_ids = [
+#     aws_security_group.eks_worker_nodes.id
+#   ]
+#   # network_interfaces {
+#   #   security_groups             = [aws_security_group.eks_worker_nodes.id]
+#   #   associate_public_ip_address = false
+#   #   delete_on_termination       = true
+#   # }
 
-  # tag_specifications {
-  #   resource_type = "instance"
-  #   tags = {
-  #     Name = "${var.tags.project}-${var.tags.environment}-node"
-  #   }
-  # }
+#   # tag_specifications {
+#   #   resource_type = "instance"
+#   #   tags = {
+#   #     Name = "${var.tags.project}-${var.tags.environment}-node"
+#   #   }
+#   # }
 
-  # lifecycle {
-  #   create_before_destroy = true
-  # }
-}
+#   # lifecycle {
+#   #   create_before_destroy = true
+#   # }
+# }
 
 resource "aws_eks_node_group" "eks_managed_node_group" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
@@ -29,10 +29,10 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
   node_role_arn   = aws_iam_role.eks_nodegroup_role.arn
   subnet_ids      = var.private_subnet_ids
 
-  launch_template {
-    id      = aws_launch_template.eks_nodes.id
-    version = "$Latest"
-  }
+  # launch_template {
+  #   id      = aws_launch_template.eks_nodes.id
+  #   version = "$Latest"
+  # }
 
   scaling_config {
     desired_size = 2
@@ -40,9 +40,9 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
     max_size     = 5
   }
 
-  update_config {
-    max_unavailable = 1
-  }
+  # update_config {
+  #   max_unavailable = 1
+  # }
 
   depends_on = [
     aws_iam_role_policy_attachment.eks-AmazonEKSWorkerNodePolicy,

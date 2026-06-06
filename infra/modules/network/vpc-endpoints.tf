@@ -5,6 +5,7 @@ locals {
     "sts",
     "logs",
     "eks",
+    "ec2",
   ])
 }
 
