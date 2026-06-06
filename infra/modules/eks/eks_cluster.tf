@@ -3,13 +3,13 @@ data "aws_caller_identity" "current" {}
 # GitHub OIDC access
 resource "aws_eks_access_entry" "github" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = "arn:aws:iam::579871530627:role/github-Kubernetes-dev-role"
+  principal_arn = "arn:aws:iam::579871530627:user/emmy"
   type          = "STANDARD"
 }
 
 resource "aws_eks_access_policy_association" "github" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = "arn:aws:iam::579871530627:role/github-Kubernetes-dev-role"
+  principal_arn = "arn:aws:iam::579871530627:user/emmy"
 
   policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
@@ -17,6 +17,7 @@ resource "aws_eks_access_policy_association" "github" {
     type = "cluster"
   }
 }
+
 # locals {
 #   github_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
 # }
