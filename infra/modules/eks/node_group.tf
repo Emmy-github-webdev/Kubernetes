@@ -29,10 +29,9 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
   node_role_arn   = aws_iam_role.eks_nodegroup_role.arn
   subnet_ids      = var.private_subnet_ids
 
-  # launch_template {
-  #   id      = aws_launch_template.eks_nodes.id
-  #   version = "$Latest"
-  # }
+  instance_types = ["t3.medium"]
+
+  ami_type = "AL2023_x86_64_STANDARD"
 
   scaling_config {
     desired_size = 2
@@ -40,16 +39,11 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
     max_size     = 5
   }
 
-  # update_config {
-  #   max_unavailable = 1
-  # }
-
   depends_on = [
     aws_iam_role_policy_attachment.eks-AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.eks-AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.eks-AmazonEC2ContainerRegistryReadOnly,
   ]
-
 }
 
 resource "aws_iam_role" "eks_nodegroup_role" {
