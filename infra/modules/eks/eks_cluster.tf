@@ -163,7 +163,7 @@ resource "aws_eks_cluster" "eks_cluster" {
     endpoint_private_access = true
     endpoint_public_access  = true
     subnet_ids              = var.private_subnet_ids
-    security_group_ids      = [aws_security_group.eks_cluster.id]
+    # security_group_ids      = [aws_security_group.eks_cluster.id]
   }
 
   # encryption_config {
