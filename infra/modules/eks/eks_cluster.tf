@@ -62,7 +62,7 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 #########################################################################
-resource "aws_iam_role" "eks_admin" {
+resource "aws_iam_role" "eks_admin_role" {
   name = "${var.tags.project}-${var.tags.environment}-admin"
 
   assume_role_policy = jsonencode({
@@ -79,9 +79,9 @@ resource "aws_iam_role" "eks_admin" {
   })
 }
 
-resource "aws_eks_access_policy_association" "eks_admin" {
+resource "aws_eks_access_policy_association" "eks_admin_asso" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = aws_iam_role.eks_admin.arn
+  principal_arn = aws_iam_role.eks_admin_role.arn
 
   policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
