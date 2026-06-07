@@ -1,43 +1,5 @@
 data "aws_caller_identity" "current" {}
 
-# GitHub OIDC access
-resource "aws_eks_access_entry" "github" {
-  cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = "arn:aws:iam::579871530627:user/emmy"
-  type          = "STANDARD"
-}
-
-resource "aws_eks_access_policy_association" "github" {
-  cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = "arn:aws:iam::579871530627:user/emmy"
-
-  policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-
-  access_scope {
-    type = "cluster"
-  }
-}
-
-# locals {
-#   github_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
-# }
-
-# resource "aws_eks_access_entry" "github" {
-#   cluster_name  = aws_eks_cluster.eks_cluster.name
-#   principal_arn = local.github_role_arn
-#   type          = "STANDARD"
-# }
-
-# resource "aws_eks_access_policy_association" "github" {
-#   cluster_name  = aws_eks_cluster.eks_cluster.name
-#   principal_arn = local.github_role_arn
-#   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-
-#   access_scope {
-#     type = "cluster"
-#   }
-# }
-
 resource "aws_iam_role" "eks_cluster_role" {
   name = "${var.tags.project}-${var.tags.environment}-cluster-role"
   assume_role_policy = jsonencode({
@@ -61,36 +23,7 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy_attachment" {
   role       = aws_iam_role.eks_cluster_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
-#########################################################################
-resource "aws_iam_role" "eks_admin_role" {
-  name = "${var.tags.project}-${var.tags.environment}-admin"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
-}
-
-resource "aws_eks_access_policy_association" "eks_admin_asso" {
-  cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = aws_iam_role.eks_admin_role.arn
-
-  policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-
-  access_scope {
-    type = "cluster"
-  }
-}
-
-####################################################################
 resource "aws_iam_role" "eks_admin" {
   name = "${var.tags.project}-${var.tags.environment}-admin-role"
 
@@ -106,26 +39,15 @@ resource "aws_iam_role" "eks_admin" {
   })
 }
 
-locals {
-  eks_admin_principals = {
-    eks_admin  = aws_iam_role.eks_admin.arn
-    admin_role = aws_iam_role.eks_admin_role.arn
-    eks_admin  = aws_iam_role.eks_admin.arn
-    emmy       = "arn:aws:iam::579871530627:user/emmy"
-  }
-}
-
 resource "aws_eks_access_entry" "eks_access_entry" {
-  for_each      = local.eks_admin_principals
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = each.value
+  principal_arn = aws_iam_role.eks_admin.arn
   type          = "STANDARD"
 }
 
 resource "aws_eks_access_policy_association" "eks_access_policy_association" {
-  for_each      = local.eks_admin_principals
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = each.value
+  principal_arn = aws_iam_role.eks_admin.arn
 
   policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
