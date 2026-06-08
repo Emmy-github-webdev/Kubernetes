@@ -43,35 +43,3 @@ module "eks" {
   private_subnet_ids = module.vpc.private_subnet_ids
   eks_vpc_id         = module.vpc.vpc_id
 }
-
-# Configure aws-auth ConfigMap for IAM user/role access
-# resource "kubernetes_config_map" "aws_auth" {
-#   metadata {
-#     name      = "aws-auth"
-#     namespace = "kube-system"
-#   }
-
-#   data = {
-#     mapRoles = yamlencode([
-#       {
-#         rolearn  = module.eks.eks_nodegroup_role_arn
-#         username = "system:node:{{EC2PrivateDNSName}}"
-#         groups   = ["system:bootstrappers", "system:nodes"]
-#       }
-#     ])
-
-#     mapUsers = yamlencode([
-#       {
-#         userarn  = data.aws_caller_identity.current.arn
-#         username = data.aws_caller_identity.current.user_id
-#         groups   = ["system:masters"]
-#       }
-#     ])
-#   }
-
-#   depends_on = [
-#     module.eks
-#   ]
-# }
-
-# data "aws_caller_identity" "current" {}
