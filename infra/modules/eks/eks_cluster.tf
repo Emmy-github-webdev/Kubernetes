@@ -83,17 +83,16 @@ resource "aws_eks_cluster" "eks_cluster" {
 
   vpc_config {
     endpoint_private_access = true
-    endpoint_public_access  = true
+    endpoint_public_access  = false
     subnet_ids              = var.private_subnet_ids
-    # security_group_ids      = [aws_security_group.eks_cluster.id]
   }
 
-  # encryption_config {
-  #   resources = ["secrets"]
-  #   provider {
-  #     key_arn = var.kms_key_arn
-  #   }
-  # }
+  encryption_config {
+    resources = ["secrets"]
+    provider {
+      key_arn = var.kms_key_arn
+    }
+  }
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   tags = {

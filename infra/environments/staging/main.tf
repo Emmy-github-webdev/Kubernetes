@@ -10,8 +10,8 @@ module "vpc" {
   tags                       = module.tags.common_tags
   vpc_cidr                   = "10.0.0.0/16"
   azs                        = ["us-east-1a", "us-east-1b"]
-  public_subnet_cidrs        = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnet_cidrs       = ["10.0.11.0/24", "10.0.12.0/24"]
+  public_subnet_cidrs        = ["10.0.3.0/24", "10.0.4.0/24"]
+  private_subnet_cidrs       = ["10.0.13.0/24", "10.0.114.0/24"]
   cloudwatch_log_group_arn   = module.cloudwatch.vpc_flow_logs_cloudwatch_loggroup_arn
   vpc_flow_logs_iam_role_arn = module.iam.vpc_flow_logs_iam_role_arn
   cluster_name               = module.eks.cluster_name
