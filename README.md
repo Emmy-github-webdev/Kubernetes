@@ -36,6 +36,29 @@ eksctlversion
 
 [](./pub_priv_eks_pg.png)
 
+### Developer Github architecture
+
+Developer
+   ↓
+GitHub
+   ↓
+Pull Request
+   ↓
+CI Pipeline
+   ├── SonarQube
+   ├── Dependency Check
+   ├── Trivy File Scan
+   ├── Unit Tests
+   ├── Build
+   ├── Trivy Image Scan
+   └── Push to ECR
+            ↓
+       ArgoCD
+            ↓
+          EKS
+            ↓
+Prometheus + Grafana
+
 ## Step By Step Creation of Resources
 
 ### Phase 1 - Network
@@ -211,7 +234,7 @@ awseksdescribe-cluster
 
 Verify:
 ```
-kubectlgetpods-nkube-system
+kubectl get pods-nkube-system
 ```
 
 Expected:
@@ -223,25 +246,25 @@ Running
 ### Phase 6 - Monitoring Stack
 
 13. _Create Monitoring Namespace_
-createnamespacemonitoring
+create name space monitoring
 
 Verify:
 
 ```
-kubectlgetnsmonitoring
+kubectl get ns monitoring
 ```
 
 14. _Add Helm Repository_
 
 ```
-helmrepoaddprometheus-community
+helm repo add prometheus-community
 https://prometheus-community.github.io/helm-charts
 helmrepoupdate
 ```
 15. _Install kube-prometheus-stack_
 
 ```
-helminstallmonitoring
+helm install monitoring
 prometheus-community/kube-prometheus-stack
 -nmonitoring
 ```
