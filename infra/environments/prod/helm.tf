@@ -1,10 +1,10 @@
-resource "helm_release" "ingress_nginx" {
-  name             = "ingress-nginx"
-  namespace        = "ingress-nginx"
-  create_namespace = true
+# resource "helm_release" "ingress_nginx" {
+#   name             = "ingress-nginx"
+#   namespace        = "ingress-nginx"
+#   create_namespace = true
 
-  repository = "https://kubernetes.github.io/ingress-nginx"
-  chart      = "ingress-nginx"
+#   repository = "https://kubernetes.github.io/ingress-nginx"
+#   chart      = "ingress-nginx"
 
-  depends_on = [module.eks]
-}
+#   depends_on = [module.eks]
+# }
