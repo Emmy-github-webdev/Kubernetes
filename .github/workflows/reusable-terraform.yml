@@ -205,7 +205,7 @@ jobs:
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
-          terraform init \
+          terraform init -upgrade \
             -backend-config=backend.hcl \
             -input=false
 

@@ -1,28 +1,3 @@
-# resource "aws_launch_template" "eks_nodes" {
-#   name_prefix   = "eks-node-"
-#   instance_type = "t3.medium"
-
-#   vpc_security_group_ids = [
-#     aws_security_group.eks_worker_nodes.id
-#   ]
-#   # network_interfaces {
-#   #   security_groups             = [aws_security_group.eks_worker_nodes.id]
-#   #   associate_public_ip_address = false
-#   #   delete_on_termination       = true
-#   # }
-
-#   # tag_specifications {
-#   #   resource_type = "instance"
-#   #   tags = {
-#   #     Name = "${var.tags.project}-${var.tags.environment}-node"
-#   #   }
-#   # }
-
-#   # lifecycle {
-#   #   create_before_destroy = true
-#   # }
-# }
-
 resource "aws_eks_node_group" "eks_managed_node_group" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
   node_group_name = "${var.tags.project}-${var.tags.environment}-node-group"

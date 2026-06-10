@@ -56,22 +56,6 @@ resource "aws_eks_access_policy_association" "eks_access_policy_association" {
   }
 }
 
-# resource "aws_eks_access_entry" "admin" {
-#   cluster_name  = aws_eks_cluster.eks_cluster.name
-#   principal_arn = aws_iam_role.eks_admin.arn
-#   type          = "STANDARD"
-# }
-
-# resource "aws_eks_access_policy_association" "admin" {
-#   cluster_name  = aws_eks_cluster.eks_cluster.name
-#   principal_arn = aws_iam_role.eks_admin.arn
-#   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-
-#   access_scope {
-#     type = "cluster"
-#   }
-# }
-
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "${var.tags.project}-${var.tags.environment}-cluster"
   role_arn = aws_iam_role.eks_cluster_role.arn
