@@ -39,15 +39,28 @@ resource "aws_iam_role" "eks_admin" {
   })
 }
 
+locals {
+  github_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
+
+  eks_admin_role_arn = aws_iam_role.eks_admin.arn
+
+  eks_admin_principals = {
+    eks_admin = local.eks_admin_role_arn
+    github    = local.github_role_arn
+  }
+}
+
 resource "aws_eks_access_entry" "eks_access_entry" {
+  for_each      = local.eks_admin_principals
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = aws_iam_role.eks_admin.arn
+  principal_arn = each.value
   type          = "STANDARD"
 }
 
 resource "aws_eks_access_policy_association" "eks_access_policy_association" {
+  for_each      = local.eks_admin_principals
   cluster_name  = aws_eks_cluster.eks_cluster.name
-  principal_arn = aws_iam_role.eks_admin.arn
+  principal_arn = each.value
 
   policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
