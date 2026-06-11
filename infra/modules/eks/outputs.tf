@@ -42,3 +42,7 @@ output "eks_cluster_arn" {
   value       = aws_eks_cluster.eks_cluster.arn
   description = "EKS Cluster ARN"
 }
+
+output "repository_url" {
+  value = aws_ecr_repository.eks_ecr_repository.repository_url
+}
