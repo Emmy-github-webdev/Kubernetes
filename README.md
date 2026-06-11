@@ -36,6 +36,48 @@ eksctlversion
 
 [](./pub_priv_eks_pg.png)
 
+### High level guide
+
+infra-repo
+│
+├── Terraform
+│   ├── VPC
+│   ├── EKS
+│   ├── ECR
+│   ├── GitHub OIDC
+│   └── ArgoCD
+│
+└── ArgoCD Application
+      │
+      ▼
+gitops-repo
+│
+├── apps
+│   └── my-app
+│       ├── deployment.yaml
+│       └── service.yaml
+│
+└── values.yaml
+      image:
+        repository: <ecr_repo>
+        tag: abc123
+      │
+      ▼
+app-repo GitHub Actions
+│
+├── Build Docker image
+├── Push to ECR
+└── Update gitops-repo image tag
+      │
+      ▼
+ArgoCD syncs
+      │
+      ▼
+EKS pulls image from ECR
+      │
+      ▼
+Application running
+
 ### Developer Github architecture
 
 Developer

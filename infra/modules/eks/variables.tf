@@ -18,3 +18,9 @@ variable "eks_vpc_id" {
   description = "VPC ID for the EKS cluster"
   type        = string
 }
+
+variable "Ecr_name" {
+  description = "Name of the ECR repository for EKS"
+  type        = string
+  default     = "eks-microservices-ecr-repository"
+}
