@@ -14,6 +14,12 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
     max_size     = 5
   }
 
+  tags = {
+    key                 = "Name"
+    value               = "${var.tags.project}-${var.tags.environment}-node"
+    propagate_at_launch = true
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.eks-AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.eks-AmazonEKS_CNI_Policy,
