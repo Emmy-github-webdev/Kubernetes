@@ -47,6 +47,10 @@ module "eks" {
 module "argocd" {
   source = "../../modules/argocd"
   tags   = module.tags.common_tags
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
 }
 
 module "alb_ingress" {
