@@ -3,42 +3,18 @@ resource "aws_iam_policy" "alb_controller" {
   policy = file("${path.module}/iam_policy.json")
 }
 
-data "aws_eks_cluster" "eks" {
-  name = var.cluster_name
-}
-
-data "aws_eks_cluster_auth" "eks" {
-  name = var.cluster_name
-}
-
-data "tls_certificate" "eks" {
-  url = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
-}
-
-resource "aws_iam_openid_connect_provider" "eks" {
-  url = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
-
-  client_id_list = [
-    "sts.amazonaws.com"
-  ]
-
-  thumbprint_list = [
-    data.tls_certificate.eks.certificates[0].sha1_fingerprint
-  ]
-}
-
 data "aws_iam_policy_document" "alb_assume_role" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+      identifiers = [var.oidc_provider_arn]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${replace(data.aws_eks_cluster.eks.identity[0].oidc[0].issuer, "https://", "")}:sub"
+      variable = "${replace(var.oidc_issuer_url, "https://", "")}:sub"
 
       values = [
         "system:serviceaccount:kube-system:aws-load-balancer-controller"
@@ -94,24 +70,4 @@ resource "helm_release" "aws_load_balancer_controller" {
   depends_on = [
     kubernetes_service_account.alb_controller
   ]
-}
-
-# To be updated with actual application service and ingress resources after the ALB Ingress Controller is deployed and working correctly. This is just a placeholder to ensure the controller is set up properly.
-resource "kubernetes_service" "api" {
-  metadata {
-    name = "fintech-api"
-  }
-
-  spec {
-    selector = {
-      app = "fintech-api"
-    }
-
-    port {
-      port        = 80
-      target_port = 3000
-    }
-
-    type = "ClusterIP"
-  }
 }
