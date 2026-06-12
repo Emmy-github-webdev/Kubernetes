@@ -44,6 +44,11 @@ module "eks" {
   eks_vpc_id         = module.vpc.vpc_id
 }
 
+module "argocd" {
+  source = "../../modules/argocd"
+  tags   = module.tags.common_tags
+}
+
 module "alb_ingress" {
   source            = "../../modules/alb-ingress"
   tags              = module.tags.common_tags

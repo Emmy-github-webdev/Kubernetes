@@ -9,3 +9,13 @@ resource "helm_release" "argocd" {
     file("${path.module}/values.yaml")
   ]
 }
+
+resource "kubernetes_manifest" "root_app" {
+  manifest = yamldecode(
+    file("${path.module}/root-app.yaml")
+  )
+
+  depends_on = [
+    helm_release.argocd
+  ]
+}

@@ -50,17 +50,19 @@ infra-repo
 └── ArgoCD Application
       │
       ▼
-gitops-repo
-│
-├── apps
-│   └── my-app
-│       ├── deployment.yaml
-│       └── service.yaml
-│
-└── values.yaml
-      image:
-        repository: <ecr_repo>
-        tag: abc123
+gitops-repo/
+├── apps/
+│   ├── my-app/
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   └── kustomization.yaml
+│   └── another-app/
+├── clusters/
+│   ├── dev/
+│   ├── stage/
+│   └── prod/
+|
+└── README.md
       │
       ▼
 app-repo GitHub Actions
@@ -77,6 +79,20 @@ EKS pulls image from ECR
       │
       ▼
 Application running
+
+### The flow
+
+app-repo
+    ↓
+Build Image
+    ↓
+Push to ECR
+    ↓
+Update gitops-repo image tag
+    ↓
+ArgoCD detects change
+    ↓
+Deploy to EKS
 
 ### Developer Github architecture
 
