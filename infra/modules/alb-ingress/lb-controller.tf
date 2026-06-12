@@ -59,7 +59,7 @@ resource "aws_iam_role_policy_attachment" "alb_controller" {
 
 resource "kubernetes_service_account" "alb_controller" {
   metadata {
-    name      = "${var.tags.project}-${var.tags.environment}-lb-controller"
+    name      = "aws-load-balancer-controller"
     namespace = "kube-system"
 
     annotations = {
@@ -68,37 +68,32 @@ resource "kubernetes_service_account" "alb_controller" {
   }
 }
 
-resource "helm_release" "alb_controller" {
+resource "helm_release" "aws_load_balancer_controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
 
-  set {
-    name  = "clusterName"
-    value = var.cluster_name
-  }
+  create_namespace = false
 
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
+  values = [
+    yamlencode({
+      clusterName = var.cluster_name
 
-  set {
-    name  = "serviceAccount.name"
-    value = "${var.tags.project}-${var.tags.environment}-lb-controller"
-  }
+      region = "${var.tags.region}"
 
-  set {
-    name  = "region"
-    value = var.tags.region
-  }
+      vpcId = var.vpc_id
 
-  set {
-    name  = "vpcId"
-    value = var.vpc_id
-  }
+      serviceAccount = {
+        create = false
+        name   = kubernetes_service_account.alb_controller.metadata[0].name
+      }
+    })
+  ]
 
+  depends_on = [
+    kubernetes_service_account.alb_controller
+  ]
 }
 
 # To be updated with actual application service and ingress resources after the ALB Ingress Controller is deployed and working correctly. This is just a placeholder to ensure the controller is set up properly.
