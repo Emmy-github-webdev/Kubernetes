@@ -75,30 +75,30 @@ resource "helm_release" "alb_controller" {
   namespace  = "kube-system"
 
   set {
-      name  = "clusterName"
-      value = var.cluster_name
-    }
-
-  set {
-      name  = "serviceAccount.create"
-      value = "false"
-  }
-
-  set{
-      name  = "serviceAccount.name"
-      value = "${var.tags.project}-${var.tags.environment}-lb-controller"
+    name  = "clusterName"
+    value = var.cluster_name
   }
 
   set {
-      name  = "region"
-      value = var.tags.region
+    name  = "serviceAccount.create"
+    value = "false"
   }
 
   set {
-      name  = "vpcId"
-      value = var.vpc_id
+    name  = "serviceAccount.name"
+    value = "${var.tags.project}-${var.tags.environment}-lb-controller"
   }
-  
+
+  set {
+    name  = "region"
+    value = var.tags.region
+  }
+
+  set {
+    name  = "vpcId"
+    value = var.vpc_id
+  }
+
 }
 
 # To be updated with actual application service and ingress resources after the ALB Ingress Controller is deployed and working correctly. This is just a placeholder to ensure the controller is set up properly.
