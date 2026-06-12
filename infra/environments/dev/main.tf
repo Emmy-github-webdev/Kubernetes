@@ -45,9 +45,10 @@ module "eks" {
 }
 
 module "alb_ingress" {
-  source          = "../../modules/alb-ingress"
-  tags            = module.tags.common_tags
-  cluster_name    = module.eks.cluster_name
-  oidc_issuer_url = module.eks.oidc_issuer_url
-  vpc_id          = module.vpc.vpc_id
+  source            = "../../modules/alb-ingress"
+  tags              = module.tags.common_tags
+  cluster_name      = module.eks.cluster_name
+  oidc_issuer_url   = module.eks.oidc_issuer_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  vpc_id            = module.vpc.vpc_id
 }
