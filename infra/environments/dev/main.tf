@@ -51,6 +51,7 @@ module "argocd" {
     kubernetes = kubernetes
     helm       = helm
   }
+  depends_on = [module.eks]
 }
 
 module "alb_ingress" {
