@@ -43,3 +43,22 @@ module "eks" {
   private_subnet_ids = module.vpc.private_subnet_ids
   eks_vpc_id         = module.vpc.vpc_id
 }
+
+module "argocd" {
+  source = "../../modules/argocd"
+  tags   = module.tags.common_tags
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  depends_on = [module.eks]
+}
+
+module "alb_ingress" {
+  source            = "../../modules/alb-ingress"
+  tags              = module.tags.common_tags
+  cluster_name      = module.eks.cluster_name
+  oidc_issuer_url   = module.eks.oidc_issuer_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  vpc_id            = module.vpc.vpc_id
+}

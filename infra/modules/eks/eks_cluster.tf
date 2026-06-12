@@ -121,3 +121,19 @@ resource "aws_vpc_security_group_ingress_rule" "eks_cluster_https_from_nodes" {
   from_port   = 443
   to_port     = 443
 }
+
+data "tls_certificate" "eks" {
+  url = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_openid_connect_provider" "eks" {
+  url = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
+
+  client_id_list = [
+    "sts.amazonaws.com"
+  ]
+
+  thumbprint_list = [
+    data.tls_certificate.eks.certificates[0].sha1_fingerprint
+  ]
+}

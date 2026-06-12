@@ -50,17 +50,19 @@ infra-repo
 └── ArgoCD Application
       │
       ▼
-gitops-repo
-│
-├── apps
-│   └── my-app
-│       ├── deployment.yaml
-│       └── service.yaml
-│
-└── values.yaml
-      image:
-        repository: <ecr_repo>
-        tag: abc123
+gitops-repo/
+├── apps/
+│   ├── my-app/
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   └── kustomization.yaml
+│   └── another-app/
+├── clusters/
+│   ├── dev/
+│   ├── stage/
+│   └── prod/
+|
+└── README.md
       │
       ▼
 app-repo GitHub Actions
@@ -77,6 +79,20 @@ EKS pulls image from ECR
       │
       ▼
 Application running
+
+### The flow
+
+app-repo
+    ↓
+Build Image
+    ↓
+Push to ECR
+    ↓
+Update gitops-repo image tag
+    ↓
+ArgoCD detects change
+    ↓
+Deploy to EKS
 
 ### Developer Github architecture
 
@@ -534,15 +550,3 @@ code quality analysis
 Dependency check
 File scan
 
-
-Error
-
-│ Error: waiting for EKS Node Group (eks-dev-cluster:eks-dev-node-group) create: unexpected state 'CREATE_FAILED', wanted target 'ACTIVE'. last error: i-0409ad73151ca8118, i-0d7138e8476b660ba: NodeCreationFailure: Instances failed to join the kubernetes cluster
-│ 
-│   with module.eks.aws_eks_node_group.eks_managed_node_group,
-│   on ../../modules/eks/node_group.tf line 26, in resource "aws_eks_node_group" "eks_managed_node_group":
-│   26: resource "aws_eks_node_group" "eks_managed_node_group" {
-│ 
-╵
-Error: Terraform exited with code 1.
-Error: Process completed with exit code 1.
