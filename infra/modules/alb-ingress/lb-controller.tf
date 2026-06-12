@@ -74,32 +74,32 @@ resource "helm_release" "alb_controller" {
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
 
-  set {
-    name  = "clusterName"
-    value = var.cluster_name
-  }
+  set = [
+    {
+      name  = "clusterName"
+      value = var.cluster_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = "false"
+    },
+    {
+      name  = "serviceAccount.name"
+      value = "${var.tags.project}-${var.tags.environment}-lb-controller"
+    },
+    {
+      name  = "region"
+      value = var.tags.region
+    },
+    {
+      name  = "vpcId"
+      value = var.vpc_id
+    }
+  ]
 
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = "aws-load-balancer-controller"
-  }
-
-  set {
-    name  = "region"
-    value = var.tags.region
-  }
-
-  set {
-    name  = "vpcId"
-    value = var.vpc_id
-  }
 }
 
+# To be updated with actual application service and ingress resources after the ALB Ingress Controller is deployed and working correctly. This is just a placeholder to ensure the controller is set up properly.
 resource "kubernetes_service" "api" {
   metadata {
     name = "fintech-api"
