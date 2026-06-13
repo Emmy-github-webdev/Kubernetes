@@ -117,6 +117,21 @@ CI Pipeline
             ↓
 Prometheus + Grafana
 
+### Target architecture
+Internet
+    |
+    v
+ALB (AWS)
+    |
+    v
+Kubernetes Ingress
+    |
+    v
+ClusterIP Service
+    |
+    v
+Pods
+
 ## Step By Step Creation of Resources
 
 ### Phase 1 - Network
