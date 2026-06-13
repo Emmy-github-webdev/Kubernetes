@@ -61,4 +61,9 @@ module "alb_ingress" {
   oidc_issuer_url   = module.eks.oidc_issuer_url
   oidc_provider_arn = module.eks.oidc_provider_arn
   vpc_id            = module.vpc.vpc_id
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  depends_on = [module.eks]
 }
