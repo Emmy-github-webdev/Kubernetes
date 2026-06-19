@@ -67,3 +67,8 @@ module "alb_ingress" {
   }
   depends_on = [module.eks]
 }
+
+module "alb" {
+  source     = "../../modules/alb"
+  domin_name = "api.dev.emmanuelogah.com"
+}
