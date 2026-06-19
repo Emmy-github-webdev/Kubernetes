@@ -1,10 +1,10 @@
 resource "aws_route53_zone" "api" {
-  name = var.domin_name
+  name = var.domain_name
 }
 
 resource "aws_route53_record" "api_validation" {
   for_each = {
-    for vdo in aws_acm_certificate.api.domain_validation_options :
+    for dvo in aws_acm_certificate.api.domain_validation_options :
     dvo.domain_name => dvo
   }
 

@@ -69,6 +69,6 @@ module "alb_ingress" {
 }
 
 module "alb" {
-  source     = "../../modules/alb"
-  domin_name = "api.dev.emmanuelogah.com"
+  source      = "../../modules/alb"
+  domain_name = "api.dev.emmanuelogah.com"
 }
