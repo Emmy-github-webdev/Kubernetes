@@ -16,10 +16,6 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.14"
     }
-    postgresql = {
-      source  = "cyrilgdn/postgresql"
-      version = "~> 1.26"
-    }
   }
 
   backend "s3" {}
