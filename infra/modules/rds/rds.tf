@@ -102,13 +102,13 @@ resource "aws_db_instance" "postgres" {
   username = "masteradmin"
   password = random_password.master.result
 
-  publicly_accessible = false
+  publicly_accessible = true
 
   backup_retention_period = 30
 
   deletion_protection = true
 
-  skip_final_snapshot = false
+  skip_final_snapshot = true
 
   db_subnet_group_name = aws_db_subnet_group.postgres.name
 
