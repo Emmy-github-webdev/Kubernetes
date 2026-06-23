@@ -32,15 +32,17 @@ locals {
 }
 
 resource "random_password" "master" {
-  length  = 32
-  special = true
+  length           = 32
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 resource "random_password" "service" {
   for_each = local.services
 
-  length  = 32
-  special = true
+  length           = 32
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 resource "aws_security_group" "postgres" {
