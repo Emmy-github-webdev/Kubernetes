@@ -186,7 +186,7 @@ resource "aws_elasticache_subnet_group" "redis" {
 
   name = "${var.tags.environment}-redis"
 
-  subnet_ids = "{$var.private_subnet_ids}"
+  subnet_ids = var.private_subnet_ids
 }
 
 resource "aws_elasticache_replication_group" "redis" {
