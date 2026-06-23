@@ -102,11 +102,11 @@ resource "aws_db_instance" "postgres" {
   username = "masteradmin"
   password = random_password.master.result
 
-  publicly_accessible = true
+  publicly_accessible = false
 
   backup_retention_period = 30
 
-  deletion_protection = true
+  deletion_protection = false
 
   skip_final_snapshot = true
 
