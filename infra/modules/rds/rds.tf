@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     postgresql = {
-      source = "cyrilgdn/postgresql"
+      source  = "cyrilgdn/postgresql"
       version = "~> 1.26"
     }
   }
@@ -186,7 +186,7 @@ resource "aws_elasticache_subnet_group" "redis" {
 
   name = "${var.tags.environment}-redis"
 
-  subnet_ids = "${var.private_subnet_ids}"
+  subnet_ids = "{$var.private_subnet_ids}"
 }
 
 resource "aws_elasticache_replication_group" "redis" {
