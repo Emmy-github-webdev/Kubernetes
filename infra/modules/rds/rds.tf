@@ -69,7 +69,7 @@ resource "aws_security_group_rule" "postgres_egress" {
 resource "aws_db_subnet_group" "postgres" {
 
   name       = "${var.tags.environment}-postgres"
-  subnet_ids = var.private_subnet_ids
+  subnet_ids = "${var.private_subnet_ids}"
 }
 
 resource "aws_db_instance" "postgres" {
@@ -177,7 +177,7 @@ resource "aws_elasticache_subnet_group" "redis" {
 
   name = "${var.tags.environment}-redis"
 
-  subnet_ids = var.private_subnet_ids
+  subnet_ids = "${var.private_subnet_ids}"
 }
 
 resource "aws_elasticache_replication_group" "redis" {
