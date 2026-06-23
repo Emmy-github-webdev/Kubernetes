@@ -6,25 +6,25 @@ variable "tags" {
 
 variable "private_subnet_ids" {
   description = "The private subnet ID"
-  type = string
+  type        = string
 }
 
 variable "vpc_id" {
   description = "VPC ID"
-  type = string
+  type        = string
 }
 
 variable "eks_node_security_group_id" {
   description = "EKS node security group ID"
-  type = string
+  type        = string
 }
 
 variable "eks_oidc_provider_arn" {
   description = "EKS OIDC provider arn"
-  type = string
+  type        = string
 }
 
 variable "eks_oidc_provider_url" {
   description = "EKS OIDC Provider URL"
-  type = string
+  type        = string
 }
