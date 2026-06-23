@@ -1,5 +1,15 @@
+locals {
+  services = [
+    "user-service",
+    "order-service",
+    "payment-service",
+    "product-service"
+  ]
+}
+
 resource "aws_ecr_repository" "eks_ecr_repository" {
-  name                 = var.Ecr_name
+  for_each             = toset(local.services)
+  name                 = each.value
   image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
@@ -16,7 +26,9 @@ resource "aws_ecr_repository" "eks_ecr_repository" {
 }
 
 resource "aws_ecr_lifecycle_policy" "eks_ecr_lifecycle_policy" {
-  repository = aws_ecr_repository.eks_ecr_repository.name
+  for_each = aws_ecr_repository.eks_ecr_repository
+
+  repository = each.value.name
 
   policy = jsonencode({
     rules = [{

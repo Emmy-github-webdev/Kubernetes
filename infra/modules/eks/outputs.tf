@@ -44,7 +44,10 @@ output "eks_cluster_arn" {
 }
 
 output "repository_url" {
-  value = aws_ecr_repository.eks_ecr_repository.repository_url
+  value = {
+    for k, repo in aws_ecr_repository.eks_ecr_repository :
+    k => repo.repository_url
+  }
 }
 
 output "oidc_provider_arn" {
