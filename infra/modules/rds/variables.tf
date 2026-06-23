@@ -6,7 +6,7 @@ variable "tags" {
 
 variable "private_subnet_ids" {
   description = "The private subnet ID"
-  type        = string
+  type = list(string)
 }
 
 variable "vpc_id" {
