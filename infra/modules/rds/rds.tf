@@ -78,7 +78,7 @@ resource "aws_security_group_rule" "postgres_egress" {
 resource "aws_db_subnet_group" "postgres" {
 
   name       = "${var.tags.environment}-postgres"
-  subnet_ids = "${var.private_subnet_ids}"
+  subnet_ids = var.private_subnet_ids
 }
 
 resource "aws_db_instance" "postgres" {
