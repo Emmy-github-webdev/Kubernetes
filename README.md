@@ -41,9 +41,16 @@ eksctlversion
 infra-repo
 │
 ├── Terraform
+|   ├── environments
+|   |    ├── dev
+|   |    ├── prod
+|   |    ├── staging
+├── Terraform
 │   ├── VPC
 │   ├── EKS
 │   ├── ECR
+│   ├── RDS
+│   ├── alb-ingress
 │   ├── GitHub OIDC
 │   └── ArgoCD
 │
