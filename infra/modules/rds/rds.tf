@@ -172,7 +172,7 @@ resource "aws_db_instance" "postgres" {
   multi_az            = true
   deletion_protection = false
 
-  db_subnet_group_name   = aws_db_subnet_group.this.name
+  db_subnet_group_name   = aws_db_subnet_group.postgres_sg.name
   vpc_security_group_ids = [aws_security_group.postgres.id]
 
   skip_final_snapshot = true
@@ -240,9 +240,34 @@ resource "aws_secretsmanager_secret_version" "db" {
 }
 
 resource "random_password" "master" {
-  for_each = local.services
-
   length           = 32
   special          = true
   override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+resource "aws_db_subnet_group" "postgres_sg" {
+  name       = "${var.tags.environment}-postgres-sg"
+  subnet_ids = var.private_subnet_ids
+
+  tags = var.tags
+}
+
+resource "aws_security_group" "postgres" {
+  name        = "${var.tags.environment}-postgres"
+  description = "PostgreSQL access"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [var.eks_node_security_group_id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
