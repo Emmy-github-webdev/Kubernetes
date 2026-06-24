@@ -81,4 +81,7 @@ module "rds" {
   private_subnet_ids         = module.vpc.private_subnet_ids
   eks_oidc_provider_arn      = module.eks.oidc_provider_arn
   vpc_id                     = module.vpc.vpc_id
+  providers = {
+    postgresql = postgresql
+  }
 }
