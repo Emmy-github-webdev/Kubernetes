@@ -196,8 +196,8 @@ resource "postgresql_database" "db" {
 resource "random_password" "service" {
   for_each = local.services
 
-  length  = 32
-  special = true
+  length           = 32
+  special          = true
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
@@ -242,7 +242,7 @@ resource "aws_secretsmanager_secret_version" "db" {
 resource "random_password" "master" {
   for_each = local.services
 
-  length  = 32
-  special = true
+  length           = 32
+  special          = true
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
