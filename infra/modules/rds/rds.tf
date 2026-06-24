@@ -198,6 +198,7 @@ resource "random_password" "service" {
 
   length  = 32
   special = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 resource "postgresql_role" "user" {
@@ -236,4 +237,12 @@ resource "aws_secretsmanager_secret_version" "db" {
     password = random_password.service[each.key].result
     sslmode  = "require"
   })
+}
+
+resource "random_password" "master" {
+  for_each = local.services
+
+  length  = 32
+  special = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
