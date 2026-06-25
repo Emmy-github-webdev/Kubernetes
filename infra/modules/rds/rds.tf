@@ -17,6 +17,12 @@ resource "random_password" "service" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
+resource "random_password" "master" {
+  length           = 32
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
 # Store credentials
 resource "aws_secretsmanager_secret" "service" {
   for_each = local.services
