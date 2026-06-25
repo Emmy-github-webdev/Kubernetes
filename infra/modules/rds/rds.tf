@@ -27,11 +27,13 @@ resource "random_password" "master" {
 resource "aws_secretsmanager_secret" "service" {
   for_each = local.services
 
-  name = "/${var.tags.environment}/${each.key}/db"
+  name                    = "/${var.tags.environment}/${each.key}/db"
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret" "postgres_master" {
-  name = "/${var.tags.environment}/postgres/master"
+  name                    = "/${var.tags.environment}/postgres/master"
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "postgres_master" {
@@ -90,6 +92,7 @@ resource "aws_db_subnet_group" "postgres" {
 }
 
 resource "aws_db_instance" "postgres" {
+
   identifier = "${var.tags.environment}-postgres"
 
   engine         = "postgres"
@@ -97,15 +100,19 @@ resource "aws_db_instance" "postgres" {
 
   instance_class = "db.r6g.large"
 
+  allocated_storage     = 20
+  max_allocated_storage = 50
+  storage_type          = "gp3"
+
   username = "masteradmin"
   password = random_password.master.result
 
   publicly_accessible = false
+  multi_az            = true
   deletion_protection = false
 
-  db_subnet_group_name = aws_db_subnet_group.postgres.name
+  db_subnet_group_name   = aws_db_subnet_group.postgres.name
+  vpc_security_group_ids = [aws_security_group.postgres.id]
 
-  vpc_security_group_ids = [
-    aws_security_group.postgres.id
-  ]
+  skip_final_snapshot = true
 }
