@@ -28,12 +28,12 @@ resource "aws_secretsmanager_secret" "service" {
   for_each = local.services
 
   name                    = "/${var.tags.environment}/${each.key}/db"
-  recovery_window_in_days = 7
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret" "postgres_master" {
   name                    = "/${var.tags.environment}/postgres/master"
-  recovery_window_in_days = 7
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "postgres_master" {
