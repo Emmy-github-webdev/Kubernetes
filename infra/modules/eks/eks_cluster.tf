@@ -44,9 +44,12 @@ locals {
 
   eks_admin_role_arn = aws_iam_role.eks_admin.arn
 
+  emmy = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/emmy" # for testing purposes only
+
   eks_admin_principals = {
     eks_admin = local.eks_admin_role_arn
     github    = local.github_role_arn
+    emmy      = local.emmy
   }
 }
 
