@@ -10,7 +10,7 @@ locals {
 
 resource "aws_ecr_repository" "eks_ecr_repository" {
   for_each             = toset(local.services)
-  name                 = each.value
+  name                 = "${local.repository_prefix}/${each.value}"
   image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
