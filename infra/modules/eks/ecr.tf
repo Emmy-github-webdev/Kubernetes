@@ -5,6 +5,7 @@ locals {
     "payment-service",
     "product-service"
   ]
+  repository_prefix = var.app_name
 }
 
 resource "aws_ecr_repository" "eks_ecr_repository" {
@@ -20,6 +21,7 @@ resource "aws_ecr_repository" "eks_ecr_repository" {
     encryption_type = "KMS"
   }
 
+  force_delete = true
   tags = {
     Name = "${var.tags.project}-${var.tags.environment}-ecr"
   }
