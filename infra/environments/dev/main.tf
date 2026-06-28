@@ -45,7 +45,7 @@ module "eks" {
 }
 
 module "argocd" {
-  source = "../../modules/argocd"
+  source = "../../platform/argocd"
   tags   = module.tags.common_tags
   providers = {
     kubernetes = kubernetes
@@ -55,7 +55,7 @@ module "argocd" {
 }
 
 module "alb_ingress" {
-  source            = "../../modules/alb-ingress"
+  source            = "../../platform/alb-ingress"
   tags              = module.tags.common_tags
   cluster_name      = module.eks.cluster_name
   oidc_issuer_url   = module.eks.oidc_issuer_url
