@@ -57,18 +57,84 @@ infra-repo
 └── ArgoCD Application
       │
       ▼
-gitops-repo/
-├── apps/
-│   ├── my-app/
-│   │   ├── deployment.yaml
-│   │   ├── service.yaml
-│   │   └── kustomization.yaml
-│   └── another-app/
-├── clusters/
-│   ├── dev/
-│   ├── stage/
-│   └── prod/
+Kubenetes-argocd Repo
+├── apps
+│   ├── user-service
+│   │   ├── base
+|   │   |   ├── deployment.yaml
+|   │   |   ├── kustomization.yaml
+|   │   |   └── poddistruption.yaml
+|   │   |   └── service.yaml
+│   │   └── overlays
+|   │   |   ├── dev
+|   |   |   |   ├── external-secret-patch.yaml
+|   |   |   |   ├── Image-patch.yaml
+|   |   |   |   ├── kustomization.yaml
+|   │   |   ├── staging
+|   │   |   └── prod
+│   ├── order-service
+│   ├── payment-service
+│   └── product-service
 |
+|
+│
+├── monitoring
+│   ├── base
+│   │   ├── namespace.yaml
+│   │   ├── kustomization.yaml
+│   │   ├── prometheus-values.yaml
+│   │   ├── grafana-dashboards/
+│   │       ├── kubernetes.json
+│   │       ├── jvm.json
+│   │       ├── postgres.json
+│   │       ├── predis.json
+│   │       └── springboot.json
+│   │   ├── servicemonitors/
+│   │   │   ├── order.yaml
+│   │   │   ├── user.yaml
+│   │   │   ├── payment.yaml
+│   │   │   └── product.yaml
+│   │   │
+│   │   └── prometheusrules/
+│   │       ├── high-cpu.yaml
+│   │       ├── high-memory.yaml
+│   │       ├── pod-restarts.yaml
+│   │       └── database-down.yaml
+│   │
+│   └── overlays
+│       ├── dev
+│       │   ├── kustomization.yaml
+│       │   └── values-patch.yaml
+│       │
+│       ├── staging
+│       └── prod
+│
+|
+|___argocd
+│   ├── dev
+│   |   ├── applicationset-apps.yaml
+|   |   ├── applicationset-infra.yaml
+|   |   ├── applicationset-monitoring.yaml
+│   |   └── root-app.yaml
+|   |
+│   ├── prod
+|   |
+│   ├── staging
+|
+|___infrastructure
+│   |   ├── dev
+│   |   |   ├── postgres-master-secret.yaml
+│   |   |   ├── order-db-secret.yaml
+│   |   |   ├── user-db-secret.yaml
+│   |   |   ├── payment-db-secret.yaml
+│   |   |   ├── product-db-secret.yaml
+│   |   |   └── postgres-bootstrap-job.yaml
+│   |   |   ├── cluster-secret-store.yaml
+│   |   |   ├── ingress.yaml
+│   |   |   └── namespace-database.yaml
+│   |   ├── prod
+│   |   |
+│   |   ├── staging
 └── README.md
       │
       ▼

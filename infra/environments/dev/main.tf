@@ -73,12 +73,12 @@ module "alb" {
   domain_name = "api.dev.emmanuelogah.com"
 }
 
-# module "rds" {
-#   source                     = "../../modules/rds"
-#   tags                       = module.tags.common_tags
-#   eks_node_security_group_id = module.eks.eks_worker_nodes_sg_id
-#   eks_oidc_provider_url      = module.eks.oidc_issuer_url
-#   private_subnet_ids         = module.vpc.private_subnet_ids
-#   eks_oidc_provider_arn      = module.eks.oidc_provider_arn
-#   vpc_id                     = module.vpc.vpc_id
-# }
+module "rds" {
+  source                     = "../../modules/rds"
+  tags                       = module.tags.common_tags
+  eks_node_security_group_id = module.eks.eks_worker_nodes_sg_id
+  eks_oidc_provider_url      = module.eks.oidc_issuer_url
+  private_subnet_ids         = module.vpc.private_subnet_ids
+  eks_oidc_provider_arn      = module.eks.oidc_provider_arn
+  vpc_id                     = module.vpc.vpc_id
+}
