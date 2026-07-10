@@ -40,7 +40,8 @@ resource "aws_elasticache_cluster" "redis" {
 
 # Store Redis connection details in AWS Secrets Manager
 resource "aws_secretsmanager_secret" "redis" {
-  name = "/${var.tags.environment}/redis"
+  name                    = "/${var.tags.environment}/redis/cache"
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "redis" {
