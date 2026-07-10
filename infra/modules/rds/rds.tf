@@ -55,6 +55,8 @@ resource "aws_secretsmanager_secret_version" "service" {
 
   secret_string = jsonencode({
     database = each.value.db
+    host     = aws_db_instance.postgres.address
+    port     = 5432
     username = "${each.key}_user"
     password = random_password.service[each.key].result
   })

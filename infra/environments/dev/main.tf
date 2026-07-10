@@ -82,3 +82,11 @@ module "rds" {
   eks_oidc_provider_arn      = module.eks.oidc_provider_arn
   vpc_id                     = module.vpc.vpc_id
 }
+
+module "redis" {
+  source                     = "../../modules/redis"
+  tags                       = module.tags.common_tags
+  eks_node_security_group_id = module.eks.eks_worker_nodes_sg_id
+  private_subnet_ids         = module.vpc.private_subnet_ids
+  vpc_id                     = module.vpc.vpc_id
+}
