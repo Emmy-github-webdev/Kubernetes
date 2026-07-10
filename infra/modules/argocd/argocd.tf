@@ -19,3 +19,86 @@ resource "helm_release" "external_secrets" {
 
   version = "0.18.2"
 }
+
+# External secrets IAM role and policy
+data "aws_eks_cluster" "cluster" {
+  name = var.cluster_name
+}
+
+data "tls_certificate" "eks" {
+  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_openid_connect_provider" "eks" {
+  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+
+  client_id_list = [
+    "sts.amazonaws.com"
+  ]
+
+  thumbprint_list = [
+    data.tls_certificate.eks.certificates[0].sha1_fingerprint
+  ]
+}
+
+resource "aws_iam_role" "external_secrets" {
+
+  name = "external-secrets-${var.tags.environment}-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.eks.arn
+        }
+
+        Action = "sts:AssumeRoleWithWebIdentity"
+
+        Condition = {
+
+          StringEquals = {
+
+            "${replace(
+              data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer,
+              "https://",
+              ""
+            )}:aud" = "sts.amazonaws.com"
+
+            "${replace(
+              data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer,
+              "https://",
+              ""
+            )}:sub" = "system:serviceaccount:external-secrets:external-secrets-sa"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "external_secrets" {
+
+  role = aws_iam_role.external_secrets.id
+
+  policy = jsonencode({
+
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+
+        Resource = "*"
+      }
+    ]
+  })
+}
