@@ -77,7 +77,7 @@ module "alb" {
 module "rds" {
   source                     = "../../modules/rds"
   tags                       = module.tags.common_tags
-  eks_node_security_group_id = module.eks.eks_worker_nodes_sg_id
+  eks_node_security_group_id = module.eks.cluster_security_group_id
   eks_oidc_provider_url      = module.eks.oidc_issuer_url
   private_subnet_ids         = module.vpc.private_subnet_ids
   eks_oidc_provider_arn      = module.eks.oidc_provider_arn
@@ -87,7 +87,7 @@ module "rds" {
 module "redis" {
   source                     = "../../modules/redis"
   tags                       = module.tags.common_tags
-  eks_node_security_group_id = module.eks.eks_worker_nodes_sg_id
+  eks_node_security_group_id = module.eks.cluster_security_group_id
   private_subnet_ids         = module.vpc.private_subnet_ids
   vpc_id                     = module.vpc.vpc_id
 }
