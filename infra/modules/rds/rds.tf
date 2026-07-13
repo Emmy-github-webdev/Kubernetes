@@ -1,3 +1,17 @@
+# Provider
+provider "postgresql" {
+  host            = aws_db_instance.postgres.address
+  port            = 5432
+  database        = "postgres"
+  username        = "masteradmin"
+  password        = random_password.master.result
+  sslmode         = "require"
+
+  depends_on = [
+    aws_db_instance.postgres
+  ]
+}
+
 # create PostgreSQL users
 
 locals {
@@ -117,4 +131,59 @@ resource "aws_db_instance" "postgres" {
   vpc_security_group_ids = [aws_security_group.postgres.id]
 
   skip_final_snapshot = true
+}
+
+# Postgresql DB
+resource "postgresql_database" "service" {
+  for_each = local.services
+
+  name = each.value.db
+
+  owner = "${each.key}_user"
+
+  depends_on = [
+    postgresql_role.service
+  ]
+}
+
+# Service users
+resource "postgresql_role" "service" {
+  for_each = local.services
+
+  name     = "${each.key}_user"
+  login    = true
+  password = random_password.service[each.key].result
+
+  depends_on = [
+    aws_db_instance.postgres
+  ]
+}
+
+# Grant privileges to service users
+resource "postgresql_grant" "service_database" {
+  for_each = local.services
+
+  database    = each.value.db
+  role        = "${each.key}_user"
+  object_type = "database"
+  privileges  = ["CONNECT"]
+
+  depends_on = [
+    postgresql_database.service
+  ]
+}
+
+# Grant privileges to service users on all tables in the database
+resource "postgresql_grant" "service_schema" {
+  for_each = local.services
+
+  database    = each.value.db
+  role        = "${each.key}_user"
+  schema      = "public"
+  object_type = "schema"
+  privileges  = ["USAGE", "CREATE"]
+
+  depends_on = [
+    postgresql_database.service
+  ]
 }
