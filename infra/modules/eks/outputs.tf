@@ -3,10 +3,10 @@ output "cluster_name" {
   description = "EKS Cluster Name"
 }
 
-#output "cluster_security_group_id" {
-#  description = "EKS managed cluster security group"
-#  value       = aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id
-#}
+output "cluster_security_group_id" {
+  description = "EKS managed cluster security group"
+  value       = aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id
+}
 
 output "eks_cluster_endpoint" {
   value       = aws_eks_cluster.eks_cluster.endpoint
@@ -28,10 +28,10 @@ output "eks_nodes_role_id" {
   description = "IAM Role ID for EKS worker nodes"
 }
 
-output "eks_worker_nodes_sg_id" {
-  value       = aws_security_group.eks_worker_nodes.id
-  description = "Security group ID for EKS worker nodes"
-}
+#output "eks_worker_nodes_sg_id" {
+#  value       = aws_security_group.eks_worker_nodes.id
+#  description = "Security group ID for EKS worker nodes"
+#}
 
 output "eks_nodegroup_role_arn" {
   value       = aws_iam_role.eks_nodegroup_role.arn
