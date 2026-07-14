@@ -35,7 +35,7 @@ provider "postgresql" {
 
   port = data.terraform_remote_state.infra.outputs.db_port
 
-  database = "postgres"
+  database = "dev-postgres"
 
   username = jsondecode(
     data.aws_secretsmanager_secret_version.master.secret_string
