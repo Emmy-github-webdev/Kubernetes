@@ -12,6 +12,7 @@ variable "aws_region" {
 
 variable "state_bucket" {
   type = string
+  default = "emmy-github-webdev-kubernetes"
 }
 
 
