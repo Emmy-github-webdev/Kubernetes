@@ -12,6 +12,10 @@ on:
       environment:
         required: true
         type: string
+        
+      tf_action:
+        required: true
+        type: string
 
 permissions:
   id-token: write
