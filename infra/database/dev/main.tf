@@ -52,7 +52,7 @@ provider "postgresql" {
 # Service users
 resource "postgresql_role" "service" {
 
-  for_each = var.services
+  for_each = local.services
 
   name = "${each.key}_user"
 
