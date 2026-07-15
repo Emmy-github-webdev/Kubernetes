@@ -100,16 +100,16 @@ jobs:
 
     secrets: inherit
 
-  # terraform-database:
-  #   needs:
-  #     - determine-env
-  #     - terraform-infrastructure
+  terraform-database:
+    needs:
+      - determine-env
+      - terraform-infrastructure
 
-  #   uses: ./.github/workflows/reusable-terraform.yml
+    uses: ./.github/workflows/reusable-terraform.yml
 
-  #   with:
-  #     stack: database
-  #     environment: ${{ needs.determine-env.outputs.environment }}
-  #     tf_action: ${{ needs.determine-env.outputs.tf_action }}
+    with:
+      stack: database
+      environment: ${{ needs.determine-env.outputs.environment }}
+      tf_action: ${{ needs.determine-env.outputs.tf_action }}
 
-  #   secrets: inherit
+    secrets: inherit
