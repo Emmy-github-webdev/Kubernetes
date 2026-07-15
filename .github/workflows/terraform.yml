@@ -88,13 +88,28 @@ jobs:
             echo "tf_action=plan" >> $GITHUB_OUTPUT
           fi
 
-  terraform:
+  terraform-infrastructure:
     needs: determine-env
 
     uses: ./.github/workflows/reusable-terraform.yml
 
     with:
+      stack: infrastructure
       environment: ${{ needs.determine-env.outputs.environment }}
       tf_action: ${{ needs.determine-env.outputs.tf_action }}
 
     secrets: inherit
+
+  # terraform-database:
+  #   needs:
+  #     - determine-env
+  #     - terraform-infrastructure
+
+  #   uses: ./.github/workflows/reusable-terraform.yml
+
+  #   with:
+  #     stack: database
+  #     environment: ${{ needs.determine-env.outputs.environment }}
+  #     tf_action: ${{ needs.determine-env.outputs.tf_action }}
+
+  #   secrets: inherit

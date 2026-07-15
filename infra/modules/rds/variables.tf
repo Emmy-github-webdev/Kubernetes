@@ -4,6 +4,14 @@ variable "tags" {
   default     = {}
 }
 
+variable "services" {
+  description = "Microservices requiring PostgreSQL databases"
+
+  type = map(object({
+    db = string
+  }))
+}
+
 variable "private_subnet_ids" {
   description = "The private subnet ID"
   type        = list(string)
