@@ -16,7 +16,7 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.14"
     }
-    
+
   }
 
   backend "s3" {}
