@@ -17,10 +17,6 @@ terraform {
       version = "~> 2.14"
     }
 
-    # postgresql = {
-    #   source  = "cyrilgdn/postgresql"
-    #   version = "~> 1.22"
-    # }
   }
 
   backend "s3" {}
