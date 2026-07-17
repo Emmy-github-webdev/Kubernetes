@@ -28,3 +28,9 @@ variable "eks_oidc_provider_url" {
   description = "EKS OIDC Provider URL"
   type        = string
 }
+
+variable "master_username" {
+  description = "Master username for the RDS instance"
+  type        = string
+  default     = "masteradmin"
+}
