@@ -71,9 +71,8 @@ jobs:
         run: |
 
           ENVIRONMENT="${{ inputs.environment }}"
-          STACK="${{ inputs.stack }}"
 
-          BACKEND_KEY="${ENVIRONMENT}/${STACK}.tfstate"
+          BACKEND_KEY="${ENVIRONMENT}/tf.tfstate"
 
           echo "Backend key: ${BACKEND_KEY}"
 
