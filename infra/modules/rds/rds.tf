@@ -43,7 +43,7 @@ resource "aws_secretsmanager_secret_version" "postgres_master" {
   secret_string = jsonencode({
     host     = aws_db_instance.postgres.address
     port     = 5432
-    username = "masteradmin"
+    username = var.master_username
     password = random_password.master.result
   })
 }
@@ -106,7 +106,7 @@ resource "aws_db_instance" "postgres" {
   max_allocated_storage = 50
   storage_type          = "gp3"
 
-  username = "masteradmin"
+  username = var.master_username
   password = random_password.master.result
 
   publicly_accessible = false
