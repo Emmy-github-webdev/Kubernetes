@@ -21,7 +21,7 @@ resource "aws_route53_record" "api" {
   type    = "A"
 
   alias {
-    name                   = data.kubernetes_ingress_v1.api.status[0].load_balancer[0].ingress[0].hostname
+    name                   = data.aws_lb.api.dns_name
     zone_id                = data.aws_lb.api.zone_id
     evaluate_target_health = true
   }
