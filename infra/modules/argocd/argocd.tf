@@ -127,3 +127,72 @@ resource "aws_iam_role_policy" "external_secrets" {
     ]
   })
 }
+
+resource "aws_iam_role" "external_dns" {
+  name = "external-dns-${var.tags.environment}-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Principal = {
+          Federated = data.aws_iam_openid_connect_provider.eks.arn
+        }
+
+        Action = "sts:AssumeRoleWithWebIdentity"
+
+        Condition = {
+          StringEquals = {
+            "${replace(
+              data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer,
+              "https://",
+              ""
+            )}:aud" = "sts.amazonaws.com"
+
+            "${replace(
+              data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer,
+              "https://",
+              ""
+            )}:sub" = "system:serviceaccount:external-dns:external-dns"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "external_dns" {
+  role = aws_iam_role.external_dns.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Action = [
+          "route53:ChangeResourceRecordSets"
+        ]
+
+        Resource = [
+          "arn:aws:route53:::hostedzone/<HOSTED_ZONE_ID>"
+        ]
+      },
+      {
+        Effect = "Allow"
+
+        Action = [
+          "route53:ListHostedZones",
+          "route53:ListResourceRecordSets",
+          "route53:ListTagsForResource"
+        ]
+
+        Resource = "*"
+      }
+    ]
+  })
+}
