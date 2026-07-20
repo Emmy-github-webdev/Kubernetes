@@ -14,15 +14,3 @@ resource "aws_route53_record" "api_validation" {
   records = [each.value.resource_record_value]
   ttl     = 60
 }
-
-resource "aws_route53_record" "api" {
-  zone_id = aws_route53_zone.api.zone_id
-  name    = var.domain_name
-  type    = "A"
-
-  alias {
-    name                   = data.kubernetes_ingress_v1.api.status[0].load_balancer[0].ingress[0].hostname
-    zone_id                = data.aws_elb_hosted_zone_id.main.id
-    evaluate_target_health = true
-  }
-}

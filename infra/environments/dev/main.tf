@@ -71,7 +71,6 @@ module "alb_ingress" {
 
 module "alb" {
   source      = "../../modules/alb"
-  tags        = module.tags.common_tags
   domain_name = "api.dev.emmanuelogah.com"
 }
 
