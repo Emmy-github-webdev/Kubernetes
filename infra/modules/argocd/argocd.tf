@@ -20,6 +20,39 @@ resource "helm_release" "external_secrets" {
   version = "0.18.2"
 }
 
+resource "helm_release" "external_dns" {
+  name             = "external-dns"
+  repository       = "https://kubernetes-sigs.github.io/external-dns/"
+  chart            = "external-dns"
+  namespace        = "external-dns"
+  create_namespace = true
+
+  version = "1.18.0"
+
+  values = [
+    yamlencode({
+      provider = "aws"
+
+      policy     = "upsert-only"
+      registry   = "txt"
+      txtOwnerId = var.cluster_name
+
+      serviceAccount = {
+        create = true
+        name   = "external-dns"
+        annotations = {
+          "eks.amazonaws.com/role-arn" = aws_iam_role.external_dns.arn
+        }
+      }
+
+      sources = [
+        "service",
+        "ingress",
+      ]
+    })
+  ]
+}
+
 # External secrets IAM role and policy
 data "aws_eks_cluster" "cluster" {
   name = var.cluster_name
@@ -87,6 +120,75 @@ resource "aws_iam_role_policy" "external_secrets" {
         Action = [
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
+        ]
+
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role" "external_dns" {
+  name = "external-dns-${var.tags.environment}-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Principal = {
+          Federated = data.aws_iam_openid_connect_provider.eks.arn
+        }
+
+        Action = "sts:AssumeRoleWithWebIdentity"
+
+        Condition = {
+          StringEquals = {
+            "${replace(
+              data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer,
+              "https://",
+              ""
+            )}:aud" = "sts.amazonaws.com"
+
+            "${replace(
+              data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer,
+              "https://",
+              ""
+            )}:sub" = "system:serviceaccount:external-dns:external-dns"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "external_dns" {
+  role = aws_iam_role.external_dns.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Action = [
+          "route53:ChangeResourceRecordSets"
+        ]
+
+        Resource = [
+          "arn:aws:route53:::hostedzone/<HOSTED_ZONE_ID>"
+        ]
+      },
+      {
+        Effect = "Allow"
+
+        Action = [
+          "route53:ListHostedZones",
+          "route53:ListResourceRecordSets",
+          "route53:ListTagsForResource"
         ]
 
         Resource = "*"
