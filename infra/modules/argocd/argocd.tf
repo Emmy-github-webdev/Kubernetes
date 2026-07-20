@@ -20,6 +20,39 @@ resource "helm_release" "external_secrets" {
   version = "0.18.2"
 }
 
+resource "helm_release" "external_dns" {
+  name             = "external-dns"
+  repository       = "https://kubernetes-sigs.github.io/external-dns/"
+  chart            = "external-dns"
+  namespace        = "external-dns"
+  create_namespace = true
+
+  version = "1.18.0"
+
+  values = [
+    yamlencode({
+      provider = "aws"
+
+      policy     = "upsert-only"
+      registry   = "txt"
+      txtOwnerId = var.cluster_name
+
+      serviceAccount = {
+        create = true
+        name   = "external-dns"
+        annotations = {
+          "eks.amazonaws.com/role-arn" = aws_iam_role.external_dns.arn
+        }
+      }
+
+      sources = [
+        "service",
+        "ingress",
+      ]
+    })
+  ]
+}
+
 # External secrets IAM role and policy
 data "aws_eks_cluster" "cluster" {
   name = var.cluster_name
