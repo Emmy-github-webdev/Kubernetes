@@ -34,3 +34,13 @@ variable "master_username" {
   type        = string
   default     = "masteradmin"
 }
+
+variable "grafana_admin_password" {
+  type      = string
+  sensitive = true
+}
+variable "slack_webhook" {
+  description = "Slack webhook URL for Alertmanager notifications"
+  type        = string
+  sensitive   = true
+}

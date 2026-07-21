@@ -639,30 +639,16 @@ Dependency check
 File scan
 
 Error
+slack
 
-module.argocd.helm_release.argocd: Creation complete after 58s [id=eks-dev-argocd]
-╷
-│ Warning: Reference to undefined provider
-│ 
-│   on main.tf line 51, in module "argocd":
-│   51:     kubernetes = kubernetes
-│ 
-│ There is no explicit declaration for local provider name "kubernetes" in
-│ module.argocd, so Terraform is assuming you mean to pass a configuration
-│ for "hashicorp/kubernetes".
-│ 
-│ If you also control the child module, add a required_providers entry named
-│ "kubernetes" with the source address "hashicorp/kubernetes".
-│ 
-│ (and one more similar warning elsewhere)
-╵
-╷
-│ Error: Unauthorized
-│ 
-│   with module.alb_ingress.kubernetes_service_account.alb_controller,
-│   on ../../modules/alb-ingress/lb-controller.tf line 36, in resource "kubernetes_service_account" "alb_controller":
-│   36: resource "kubernetes_service_account" "alb_controller" {
-│ 
-╵
-Error: Terraform exited with code 1.
-Error: Process completed with exit code 1.
+env:
+  TF_VAR_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+  export TF_VAR_slack_webhook="https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXX"
+
+
+
+variable "slack_webhook" {
+  description = "Slack webhook URL for Alertmanager"
+  type        = string
+  sensitive   = true
+}
