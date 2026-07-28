@@ -637,30 +637,3 @@ Argocd
 code quality analysis
 Dependency check
 File scan
-
-Error
-slack
-
-env:
-  TF_VAR_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
-  export TF_VAR_slack_webhook="https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXX"
-
-
-
-variable "slack_webhook" {
-  description = "Slack webhook URL for Alertmanager"
-  type        = string
-  sensitive   = true
-}
-
-variable "grafana_admin_password" {
-  type      = string
-  sensitive = true
-}
-variable "slack_webhook" {
-  description = "Slack webhook URL for Alertmanager notifications"
-  type        = string
-  sensitive   = true
-}
-
-
