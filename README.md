@@ -652,3 +652,15 @@ variable "slack_webhook" {
   type        = string
   sensitive   = true
 }
+
+variable "grafana_admin_password" {
+  type      = string
+  sensitive = true
+}
+variable "slack_webhook" {
+  description = "Slack webhook URL for Alertmanager notifications"
+  type        = string
+  sensitive   = true
+}
+
+

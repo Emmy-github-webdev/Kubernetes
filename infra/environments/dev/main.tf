@@ -81,7 +81,9 @@ module "rds" {
   eks_oidc_provider_url      = module.eks.oidc_issuer_url
   private_subnet_ids         = module.vpc.private_subnet_ids
   eks_oidc_provider_arn      = module.eks.oidc_provider_arn
-  vpc_id                     = module.vpc.vpc_id
+  vpc_id                     = module.vpc.vpc_id 
+  grafana_admin_password = var.grafana_admin_password
+  slack_webhook = var.slack_webhook
 }
 
 module "redis" {
