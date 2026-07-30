@@ -135,7 +135,8 @@ resource "aws_secretsmanager_secret_version" "grafana_admin" {
 }
 
 resource "aws_secretsmanager_secret" "alertmanager" {
-  name = "alertmanager/notifications"
+  name                    = "alertmanager/notifications"
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "alertmanager" {
