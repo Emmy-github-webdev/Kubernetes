@@ -216,10 +216,12 @@ resource "helm_release" "cert_manager" {
   chart      = "cert-manager"
   version    = "v1.18.2"
 
-  set = {
-    name  = "crds.enabled"
-    value = "true"
-  }
+  set = [
+    {
+      name  = "crds.enabled"
+      value = "true"
+    }
+  ]
 }
 
 resource "helm_release" "kyverno" {
