@@ -241,11 +241,6 @@ resource "helm_release" "velero" {
   version    = "11.1.1"
 
   set {
-    name  = "configuration.provider"
-    value = "aws"
-  }
-
-  set {
     name  = "serviceAccount.server.name"
     value = "velero"
   }
@@ -289,6 +284,12 @@ resource "helm_release" "velero" {
     name  = "configuration.backupStorageLocation[0].bucket"
     value = aws_s3_bucket.velero.id
   }
+
+  set {
+    name  = "configuration.volumeSnapshotLocation[0].config.region"
+    value = var.tags.region
+  }
+
 
   depends_on = [
     aws_iam_role_policy_attachment.velero
