@@ -45,9 +45,11 @@ module "eks" {
 }
 
 module "argocd" {
-  source       = "../../modules/argocd"
-  tags         = module.tags.common_tags
-  cluster_name = module.eks.cluster_name
+  source            = "../../modules/argocd"
+  tags              = module.tags.common_tags
+  cluster_name      = module.eks.cluster_name
+  oidc_issuer_url   = module.eks.oidc_issuer_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
   providers = {
     kubernetes = kubernetes
     helm       = helm

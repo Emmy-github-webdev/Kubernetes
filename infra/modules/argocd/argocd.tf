@@ -325,7 +325,7 @@ data "aws_iam_policy_document" "velero_assume_role" {
     principals {
       type = "Federated"
       identifiers = [
-        module.eks.oidc_provider_arn
+        var.oidc_provider_arn
       ]
     }
 
@@ -336,7 +336,7 @@ data "aws_iam_policy_document" "velero_assume_role" {
     condition {
       test = "StringEquals"
 
-      variable = "${replace(module.eks.oidc_provider_url, "https://", "")}:sub"
+      variable = "${replace(var.oidc_issuer_url, "https://", "")}:sub"
 
       values = [
         "system:serviceaccount:velero:velero"
