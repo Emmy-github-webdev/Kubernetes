@@ -196,3 +196,54 @@ resource "aws_iam_role_policy" "external_dns" {
     ]
   })
 }
+
+resource "helm_release" "kube_prometheus_stack" {
+  name             = "kube-prometheus-stack"
+  namespace        = "monitoring"
+  create_namespace = true
+
+  repository = "https://prometheus-community.github.io/helm-charts"
+  chart      = "kube-prometheus-stack"
+  version    = "72.6.0"
+}
+
+resource "helm_release" "cert_manager" {
+  name             = "cert-manager"
+  namespace        = "cert-manager"
+  create_namespace = true
+
+  repository = "https://charts.jetstack.io"
+  chart      = "cert-manager"
+  version    = "v1.18.2"
+
+  set {
+    name  = "crds.enabled"
+    value = "true"
+  }
+}
+
+resource "helm_release" "kyverno" {
+  name             = "kyverno"
+  namespace        = "kyverno"
+  create_namespace = true
+
+  repository = "https://kyverno.github.io/kyverno/"
+  chart      = "kyverno"
+}
+
+resource "helm_release" "velero" {
+  name             = "velero"
+  namespace        = "velero"
+  create_namespace = true
+
+  repository = "https://vmware-tanzu.github.io/helm-charts"
+  chart      = "velero"
+}
+
+resource "helm_release" "metrics_server" {
+  name      = "metrics-server"
+  namespace = "kube-system"
+
+  repository = "https://kubernetes-sigs.github.io/metrics-server"
+  chart      = "metrics-server"
+}
