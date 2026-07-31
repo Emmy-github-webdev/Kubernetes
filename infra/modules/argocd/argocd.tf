@@ -345,8 +345,10 @@ data "aws_iam_policy_document" "velero_assume_role" {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_s3_bucket" "velero" {
-  bucket = "${var.tags.project}-${var.tags.environment}-velero-backups"
+  bucket = "${var.tags.project}-${var.tags.environment}-${data.aws_caller_identity.current.account_id}-velero-backups"
 }
 
 resource "aws_iam_role" "velero" {
