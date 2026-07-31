@@ -238,6 +238,128 @@ resource "helm_release" "velero" {
 
   repository = "https://vmware-tanzu.github.io/helm-charts"
   chart      = "velero"
+  version    = "11.1.1"
+
+  set {
+    name  = "configuration.provider"
+    value = "aws"
+  }
+
+  set {
+    name  = "serviceAccount.server.name"
+    value = "velero"
+  }
+
+  set {
+    name  = "serviceAccount.server.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.velero.arn
+  }
+
+  set {
+    name  = "serviceAccount.server.create"
+    value = "true"
+  }
+
+  set {
+    name  = "configuration.backupStorageLocation[0].name"
+    value = "default"
+  }
+
+  set {
+    name  = "configuration.backupStorageLocation[0].provider"
+    value = "aws"
+  }
+
+  set {
+    name  = "configuration.volumeSnapshotLocation[0].name"
+    value = "default"
+  }
+
+  set {
+    name  = "configuration.volumeSnapshotLocation[0].provider"
+    value = "aws"
+  }
+
+  set {
+    name  = "configuration.backupStorageLocation[0].config.region"
+    value = var.tags.region
+  }
+
+  set {
+    name  = "configuration.backupStorageLocation[0].bucket"
+    value = aws_s3_bucket.velero.id
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.velero
+  ]
+
+}
+
+resource "aws_iam_policy" "velero" {
+  name = "${var.tags.project}-${var.tags.environment}-velero-backup-policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:*",
+          "ec2:DescribeVolumes",
+          "ec2:DescribeSnapshots",
+          "ec2:CreateSnapshot",
+          "ec2:DeleteSnapshot"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+data "aws_iam_policy_document" "velero_assume_role" {
+
+  statement {
+    effect = "Allow"
+
+    principals {
+      type = "Federated"
+      identifiers = [
+        var.oidc_provider_arn
+      ]
+    }
+
+    actions = [
+      "sts:AssumeRoleWithWebIdentity"
+    ]
+
+    condition {
+      test = "StringEquals"
+
+      variable = "${replace(var.oidc_issuer_url, "https://", "")}:sub"
+
+      values = [
+        "system:serviceaccount:velero:velero"
+      ]
+    }
+  }
+}
+
+resource "aws_s3_bucket" "velero" {
+  bucket = "${var.tags.project}-${var.tags.environment}-velero-backups"
+}
+
+resource "aws_iam_role" "velero" {
+  name = "${var.tags.project}-${var.tags.environment}-velero"
+
+  assume_role_policy = data.aws_iam_policy_document.velero_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "velero" {
+
+  role = aws_iam_role.velero.name
+
+  policy_arn = aws_iam_policy.velero.arn
 }
 
 resource "helm_release" "metrics_server" {
