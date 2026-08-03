@@ -292,7 +292,8 @@ resource "helm_release" "velero" {
 
 
   depends_on = [
-    aws_iam_role_policy_attachment.velero
+    aws_iam_role_policy_attachment.velero,
+    helm_release.snapshot_controller
   ]
 
 }
@@ -371,4 +372,16 @@ resource "helm_release" "metrics_server" {
 
   repository = "https://kubernetes-sigs.github.io/metrics-server"
   chart      = "metrics-server"
+}
+
+resource "helm_release" "snapshot_controller" {
+  name             = "${var.tags.project}-${var.tags.environment}-snapshot-controller"
+  namespace        = "kube-system"
+  create_namespace = false
+
+  repository = "https://piraeusdatastore.github.io/helm-charts/"
+  chart      = "snapshot-controller"
+
+  # Use a current chart version
+  version = "8.6.0"
 }
