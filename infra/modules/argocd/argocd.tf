@@ -379,7 +379,7 @@ resource "helm_release" "snapshot_controller" {
   namespace        = "kube-system"
   create_namespace = false
 
-  repository = "https://piraeus.github.io/helm-charts/"
+  repository = "https://piraeus.io/helm-charts/"
   chart      = "snapshot-controller"
 
   version = "5.1.1"
