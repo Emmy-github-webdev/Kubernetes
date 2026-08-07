@@ -1,639 +1,192 @@
-# EKS Microservices Platform
+# Enterprise Kubernetes Platform on AWS EKS
 
-The EKS Microservices Platform is a production-ready, cloud-native architecture built on Amazon EKS (Elastic Kubernetes Service) for deploying and managing containerized microservices at scale. The platform is designed with a secure networking model that leverages both Public and Private EKS API Endpoints, enabling controlled external access while ensuring worker nodes and workloads remain isolated within private subnets.
+[![Build Status](https://github.com/Emmy-github-webdev/Kubernetes/actions/workflows/terraform.yml/badge.svg?branch=main)](https://github.com/Emmy-github-webdev/Kubernetes/actions/workflows/terraform.yml)
+[![Infrastructure Repo](https://img.shields.io/badge/GitHub-Kubernetes-181717?logo=github)](https://github.com/Emmy-github-webdev/Kubernetes/tree/main)
+[![Terraform](https://img.shields.io/badge/Terraform-1.6%2B-623CE4?logo=terraform)](https://www.terraform.io/)
+[![AWS EKS](https://img.shields.io/badge/AWS-EKS-FF9900?logo=amazonaws)](https://aws.amazon.com/eks/)
+[![Coverage](https://img.shields.io/badge/coverage-ongoing-lightgrey)](https://github.com/Emmy-github-webdev/Kubernetes)
 
-The solution incorporates AWS Load Balancer Controller for dynamic ingress management, allowing secure exposure of services through Application Load Balancers (ALBs). To provide comprehensive observability, the platform integrates Prometheus, Grafana, Alertmanager, Node Exporter, and kube-state-metrics, delivering real-time monitoring, alerting, and visualization of cluster, node, pod, and application metrics.
+## Description
 
-The architecture follows AWS best practices for security, scalability, high availability, and operational excellence, utilizing multi-AZ deployments, private worker nodes, VPC endpoints, IAM Roles for Service Accounts (IRSA), and centralized monitoring. This platform serves as a reference implementation for running enterprise-grade microservices on Kubernetes with end-to-end networking, security, and observability capabilities.
+This repository is the infrastructure backbone for an enterprise-grade, cloud-native platform running containerized applications on Amazon EKS. It forms the foundation of a multi-repository delivery model that spans platform provisioning, application delivery, and GitOps-based deployment operations.
 
-## Key Features
+### Repository ecosystem
 
-Amazon EKS with Public and Private API Endpoints Multi-AZ deployment for high availability Private worker nodes and workloads AWS Load Balancer Controller for ingress management Prometheus-based metrics collection Grafana dashboards and visualization Alertmanager for proactive alerting Node Exporter and kube-state-metrics integration VPC Endpoints for secure AWS service access IAM Roles for Service Accounts (IRSA) Production-grade monitoring, security, and scalability Infrastructure-as-Code ready (Terraform/CloudFormation compatible) Architecture Goals
+- Infrastructure repository: [Kubernetes](https://github.com/Emmy-github-webdev/Kubernetes/tree/main)
+- Application source repository: ja-mics-ap
+- GitOps repository: kubernetes-argocd
 
-- Security: Isolate workloads in private subnets while maintaining controlled administrative access.
-- Scalability: Support horizontal scaling of microservices and worker nodes.
-- Observability: Provide full-stack monitoring, alerting, and operational visibility.
-- Reliability: Ensure high availability through multi-AZ deployment and resilient networking.
-- Operational Excellence: Simplify deployment, monitoring, troubleshooting, and maintenance of Kubernetes workloads.
+The platform combines Infrastructure as Code, secure networking, Kubernetes-native delivery, observability, and CI/CD automation to support development, staging, and production environments with strong governance, traceability, and operational consistency.
 
-## Prerequisites
+## Why this platform exists
 
-_Install_:
-  - AWS CLI
-  - kubectl
-  - eksctl
-  - Helm 3
-_Verify_:
+This platform was designed to support enterprise application delivery with a strong focus on security, reliability, and repeatability:
 
-```
-awsstsget-caller-identity
-kubectlversion--client
-helmversion
-eksctlversion
-```
+- Secure and scalable deployment of containerized workloads on AWS
+- Consistent environment provisioning across development, staging, and production
+- Strong separation between public and private application layers
+- GitOps-driven deployment and environment promotion
+- Production-grade monitoring, alerting, and operational visibility
+- A reusable foundation for future services, platform expansion, and team enablement
+
+## Drawbacks and trade-offs
+
+While this architecture is powerful and enterprise-friendly, it also introduces some trade-offs:
+
+- Higher initial setup and platform complexity
+- Greater operational responsibility for Kubernetes and cloud networking
+- Additional cost for multi-AZ, private networking, monitoring, and managed services
+- A steeper learning curve for teams adopting GitOps and platform engineering practices
 
 ## Architecture
 
-[](./pub_priv_eks_pg.png)
-
-### High level guide
-
-infra-repo
-│
-├── Terraform
-|   ├── environments
-|   |    ├── dev
-|   |    ├── prod
-|   |    ├── staging
-├── Terraform
-│   ├── VPC
-│   ├── EKS
-│   ├── ECR
-│   ├── RDS
-│   ├── alb-ingress
-│   ├── GitHub OIDC
-│   └── ArgoCD
-│
-└── ArgoCD Application
-      │
-      ▼
-Kubenetes-argocd Repo
-├── apps
-│   ├── user-service
-│   │   ├── base
-|   │   |   ├── deployment.yaml
-|   │   |   ├── kustomization.yaml
-|   │   |   └── poddistruption.yaml
-|   │   |   └── service.yaml
-│   │   └── overlays
-|   │   |   ├── dev
-|   |   |   |   ├── external-secret-patch.yaml
-|   |   |   |   ├── Image-patch.yaml
-|   |   |   |   ├── kustomization.yaml
-|   │   |   ├── staging
-|   │   |   └── prod
-│   ├── order-service
-│   ├── payment-service
-│   └── product-service
-|
-|
-│
-├── monitoring
-│   ├── base
-│   │   ├── namespace.yaml
-│   │   ├── kustomization.yaml
-│   │   ├── prometheus-values.yaml
-│   │   ├── grafana-dashboards/
-│   │       ├── kubernetes.json
-│   │       ├── jvm.json
-│   │       ├── postgres.json
-│   │       ├── predis.json
-│   │       └── springboot.json
-│   │   ├── servicemonitors/
-│   │   │   ├── order.yaml
-│   │   │   ├── user.yaml
-│   │   │   ├── payment.yaml
-│   │   │   └── product.yaml
-│   │   │
-│   │   └── prometheusrules/
-│   │       ├── high-cpu.yaml
-│   │       ├── high-memory.yaml
-│   │       ├── pod-restarts.yaml
-│   │       └── database-down.yaml
-│   │
-│   └── overlays
-│       ├── dev
-│       │   ├── kustomization.yaml
-│       │   └── values-patch.yaml
-│       │
-│       ├── staging
-│       └── prod
-│
-|
-|___argocd
-│   ├── dev
-│   |   ├── applicationset-apps.yaml
-|   |   ├── applicationset-infra.yaml
-|   |   ├── applicationset-monitoring.yaml
-│   |   └── root-app.yaml
-|   |
-│   ├── prod
-|   |
-│   ├── staging
-|
-|___infrastructure
-│   |   ├── dev
-│   |   |   ├── postgres-master-secret.yaml
-│   |   |   ├── order-db-secret.yaml
-│   |   |   ├── user-db-secret.yaml
-│   |   |   ├── payment-db-secret.yaml
-│   |   |   ├── product-db-secret.yaml
-│   |   |   └── postgres-bootstrap-job.yaml
-│   |   |   ├── cluster-secret-store.yaml
-│   |   |   ├── ingress.yaml
-│   |   |   └── namespace-database.yaml
-│   |   ├── prod
-│   |   |
-│   |   ├── staging
-└── README.md
-      │
-      ▼
-app-repo GitHub Actions
-│
-├── Build Docker image
-├── Push to ECR
-└── Update gitops-repo image tag
-      │
-      ▼
-ArgoCD syncs
-      │
-      ▼
-EKS pulls image from ECR
-      │
-      ▼
-Application running
-
-### The flow
-
-app-repo
-    ↓
-Build Image
-    ↓
-Push to ECR
-    ↓
-Update gitops-repo image tag
-    ↓
-ArgoCD detects change
-    ↓
-Deploy to EKS
-
-### Developer Github architecture
-
-Developer
-   ↓
-GitHub
-   ↓
-Pull Request
-   ↓
-CI Pipeline
-   ├── SonarQube
-   ├── Dependency Check
-   ├── Trivy File Scan
-   ├── Unit Tests
-   ├── Build
-   ├── Trivy Image Scan
-   └── Push to ECR
-            ↓
-       ArgoCD
-            ↓
-          EKS
-            ↓
-Prometheus + Grafana
-
-### Target architecture
-Internet
-    |
-    v
-ALB (AWS)
-    |
-    v
-Kubernetes Ingress
-    |
-    v
-ClusterIP Service
-    |
-    v
-Pods
-
-## Step By Step Creation of Resources
-
-### Phase 1 - Network
-
-1. _Create VPC_
+![Architecture overview](pub_priv_eks_pg.png)
 
-```
-# CIDR:
-
-10.0.0.0/16
-```
-2. _Create Public Subnets_
-
-```
-10.0.1.0/24 AZ-A
-10.0.2.0/24 AZ-B
-
-Purpose:
-  - NAT Gateways
-  - Public ALBs
-```
-
-3. _Create Private Subnets_
-
-```
-10.0.11.0/24 AZ-A
-10.0.12.0/24 AZ-B
-
-Purpose:
-  - EKS worker nodes
-  - Pods
-  - Monitoring stack
-```
-
-4. _Create Internet Gateway_
-Attach to VPC.
-
-5. _Create NAT Gateways_
-  - One NAT Gateway per AZ.
-  - Assign Elastic IPs.
-
-
-6. _Configure Route Tables_
-
-```
-Public Route Table:
-0.0.0.0/0 -> Internet Gateway
-
-Private Route Table:
-0.0.0.0/0 -> NAT Gateway
-
-```
-
-7. _Create Security Groups_
-
-- Cluster security group
-
-```
-Inbound:
-TCP 443
-Source: WorkerNodeSG
-
-Outbound:
-All
-```
-
-- Worker Node Security group
-
-```
-Outbound:
-TCP 443 → Cluster SG
-
-Inbound:
-WorkerNodeSG → WorkerNodeSG
-```
-
-### Phase 2 - EKS Cluster
-
-8. _Create EKS Cluster_
-
-```
-Enable:
-
-endpointPublicAccess:false
-endpointPrivateAccess:true
-
-#---------------------------------------
-
-Restrict:
-
-publicAccessCidrs:
-  -YOUR_OFFICE_IP/32
-```
-
-9. _Create Managed Node Group_
-
-```
-Place nodes only in:
-
-PrivateSubnetA
-PrivateSubnetB
-
-#----------------------
-Disable public IP assignment.
-
-Verify:
-
-```
-kubectl get nodes
-```
-
-Expected:
-
-STATUS Ready
-```
-
-### Phase 3 - VPC Endpoints
-
-10. _Create Interface Endpoints_
-Create:
-  - ECR API
-  - ECR DKR
-  - STS
-  - CloudWatch Logs
-Create Gateway Endpoint:
-  - S3
-Validation:
-
-```
-kubectlruncurlpod--image=curlimages/curl-it--rm--sh
-```
-
-Inside pod:
-
-```
-curlhttps://sts.amazonaws.com
-```
-
-Expected:
-
-```
-HTTP 403
-
-# 403 confirms connectivity
-```
-
-### Phase 4 - IAM Roles for Service Accounts
-
-11. _Enable OIDC Provider_
-
-```
-# I use terraform
-
-eksctlutilsassociate-iam-oidc-provider
-  --clustereks-prod
-  --approve
-
-```
-Verify:
-
-```
-awseksdescribe-cluster
-  --nameeks-prod
-  --querycluster.identity.oidc.issuer
-```
-
-### Phase 5 - AWS Load Balancer Controller
-
-12. _Install Controller_
-  - Create IAM policy.
-  - Create service account.
-  - Install Helm chart.
+The platform is organized around three repositories and a clear delivery flow:
 
-Verify:
-```
-kubectl get pods-nkube-system
-```
-
-Expected:
-```
-aws-load-balancer-controller
-Running
-```
-
-### Phase 6 - Monitoring Stack
-
-13. _Create Monitoring Namespace_
-create name space monitoring
-
-Verify:
-
-```
-kubectl get ns monitoring
-```
-
-14. _Add Helm Repository_
-
-```
-helm repo add prometheus-community
-https://prometheus-community.github.io/helm-charts
-helmrepoupdate
-```
-15. _Install kube-prometheus-stack_
-
-```
-helm install monitoring
-prometheus-community/kube-prometheus-stack
--nmonitoring
-```
-
-This deploys:
-  - Prometheus
-  - Alertmanager
-  - Grafana
-  - Node Exporter
-  - kube-state-metrics
-
-Verify:
-```
-kubectlgetpods-nmonitoring
-```
-
-Expected:
-
-```
-prometheus-*
-grafana-*
-alertmanager-*
-Running
-```
-
-### Phase 7 - Expose Grafana
-
-16. Create Ingress
-
-Create:
-
-```
-kind: Ingress
-```
-Annotations:
-
-```
-alb.ingress.kubernetes.io/scheme:internet-facing
-alb.ingress.kubernetes.io/target-type:ip
-```
-
-Apply (Using terraform):
-
-```
-kubectlapply-fgrafana-ingress.yaml
-```
-
-Verify:
-
-```
-kubectlgetingress-nmonitoring
-```
-
-Expected:
-
-```
-ADDRESS:
-xxxxxxxx.elb.amazonaws.com
-```
+1. Infrastructure repository (this repo)
+   - Provisions networking, EKS, IAM, security groups, load balancers, databases, cache, and shared platform services using Terraform.
+   - Implements environment-specific modules for dev, staging, and prod.
 
-### Phase 8 - GitOps Platform
-- Create namespace
-- Install ArgoCD
+2. Application repository: ja-mics-ap
+   - Contains the application source code, container build logic, and application-level CI/CD automation.
+   - Produces container images and publishes them to the configured registry.
 
-Verify
+3. GitOps repository: kubernetes-argocd
+   - Stores Kubernetes manifests, Argo CD application definitions, overlays, and monitoring configuration.
+   - Synchronizes application deployment state from Git into the cluster.
 
-```
-kubectl get pods -n argocd
-
-# Expected
-
-argocd-server
-argocd-repo-server
-argocd-application-controller
-Running
-```
-- Install SonarQube Server
-
-### Phase 9 - DevSecOps Platform
-- Namespace: sonarqube
-- Deploy 
-  - SonarQube
-  - PostgreSQL
-  - Persistent Volume
-  - Ingress
+### High-level deployment flow
 
-### Phase 10 - Functional Testing
+- Developers commit changes to the application repository.
+- CI pipelines build and validate the application.
+- Container images are published to the appropriate registry.
+- The GitOps repository is updated with the new image or manifest state.
+- Argo CD detects and applies the changes to the EKS cluster.
+- Kubernetes services run behind the platform networking and ingress layer.
 
-- Test 1 - Public EKS Endpoint
+## Prerequisites
 
-From workstation:
+Before using this platform, ensure the following tools are installed and configured:
 
-```
-kubectlgetnodes
-```
+- AWS CLI
+- Terraform
+- kubectl
+- Helm
+- Git
+- Docker (recommended for application image builds)
 
-Expected:
+Example verification commands:
 
+```bash
+aws sts get-caller-identity
+terraform version
+kubectl version --client
+helm version
 ```
-Node list returned
-```
 
-- Test 2 - Private Endpoint Usage
+## Quick start guide
 
-SSH into node or exec into pod.
+1. Clone the infrastructure repository.
+2. Configure your AWS credentials and preferred region.
+3. Review the environment modules under the infra/environments directory.
+4. Initialize and plan the desired environment.
+5. Apply the Terraform configuration to provision the platform.
 
-Run:
+Example:
 
+```bash
+git clone <your-infrastructure-repo-url>
+cd Kubernetes
+terraform -chdir=infra/environments/dev init
+terraform -chdir=infra/environments/dev plan
+terraform -chdir=infra/environments/dev apply
 ```
-curlhttps://<cluster-endpoint>
-```
 
-Expected:
+> Replace the environment path and variables according to your deployment target and organizational conventions.
 
-```
-403 Forbidden
+## Installation instructions
 
-# Connectivity confirmed
-```
+This repository is structured to support repeatable infrastructure deployment through Terraform modules.
 
-- Test 3 - Node Registration
+### Environment setup
 
-```
-kubectl get nodes -o wide
-```
+- Review the variables defined in each environment folder.
+- Provide the required values through a tfvars file or environment-specific input configuration.
+- Validate the configuration before applying changes.
 
-Expected:
+### Recommended workflow
 
-```
-All nodes Ready
+```bash
+terraform -chdir=infra/environments/dev fmt -check
+terraform -chdir=infra/environments/dev validate
+terraform -chdir=infra/environments/dev plan
+terraform -chdir=infra/environments/dev apply
 ```
 
-- Test 4 - Prometheus Targets
+For staging and production, follow the same process with the appropriate environment folder and approvals.
 
-portforward:
+## Basic usage examples
 
-```
-kubectlport-forwardsvc/monitoring-kube-prometheus-prometheus
-9090:9090-nmonitoring
-```
+### Validate infrastructure
 
-Navigate:
-
+```bash
+terraform -chdir=infra/environments/dev validate
 ```
-http://localhost:9090
-```
-Verify:
-
-Status -> Targets
 
-Expected:
+### Review planned changes
 
+```bash
+terraform -chdir=infra/environments/dev plan
 ```
-All critical targets UP
-```
 
-- Test 5 - Grafana Access
-Open:
+### Apply changes
 
-```
-https://grafana.company.com
+```bash
+terraform -chdir=infra/environments/dev apply
 ```
-Verify:
-  - Login successful
-  - Dashboards load
 
-- Test 6 - Kubernetes Metrics
+### Remove deployed resources
 
-Open dashboard:
-
+```bash
+terraform -chdir=infra/environments/dev destroy
 ```
-Kubernetes / Compute Resources / Cluster
-```
-
-Verify:
-  - CPU metrics
-  - Memory metrics
-  - Pod metrics
-  - Node metrics
 
-- Test 7 - Alertmanager
+## Comprehensive documentation
 
-Port forward:
+Additional project documentation is available here:
 
-```
-kubectlport-forwardsvc/monitoring-kube-prometheus-alertmanager
-9093:9093-nmonitoring
-```
+- [GITHUB_ACTION.md](GITHUB_ACTION.md)
+- [README1.md](README1.md)
 
-open:
-
-```
-http://localhost:9093
-```
-Verify:
-  - Alertmanager UI loads.
+These documents provide deeper context on CI/CD workflows, Terraform automation, and platform operations.
 
-- Final Validation
+## Contributing
 
-Confirm:
+Contributions are welcome. Please follow standard engineering practices:
 
-  - Public EKS Endpoint reachable from approved CIDRs
-  - Worker nodes only in private subnets
-  - Private Endpoint enabled
-  - ECR access working
-  - STS access working
-  - Prometheus collecting metrics
-  - Grafana displaying dashboards
-  - Alertmanager operational
-  - ALB exposing Grafana
-  - No worker nodes have public IPs
+- Create a feature branch for your work.
+- Open a pull request with a clear description of the change.
+- Ensure validation and review steps are completed before merging.
+- Align your changes with the repository’s CI/CD and infrastructure standards described in [GITHUB_ACTION.md](GITHUB_ACTION.md).
 
+## License
 
-## Resources
+This repository does not currently include a license file. For enterprise adoption, align the repository with your organization’s approved licensing model before broader internal or public reuse.
 
-- [Checkov - AWS General Policies](https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/aws-general-policies)
+## Technologies used
 
+- Terraform
+- AWS EKS
+- Amazon VPC and networking services
+- AWS IAM and security groups
+- Application Load Balancer and ingress management
+- Amazon RDS and Redis-compatible services
+- Kubernetes and Helm
+- Argo CD for GitOps delivery
+- GitHub Actions for automation and validation
+- Prometheus, Grafana, and Alertmanager for observability
 
-Notes
+---
 
-Sonarcube
-trivy
-Argocd
-code quality analysis
-Dependency check
-File scan
+This repository represents the infrastructure backbone for a secure, scalable, and enterprise-ready Kubernetes platform built for modern application delivery.
