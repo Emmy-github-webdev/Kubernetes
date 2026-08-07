@@ -13,8 +13,8 @@ This repository is the infrastructure backbone for an enterprise-grade, cloud-na
 ### Repository ecosystem
 
 - Infrastructure repository: [Kubernetes](https://github.com/Emmy-github-webdev/Kubernetes/tree/main)
-- Application source repository: ja-mics-ap
-- GitOps repository: kubernetes-argocd
+- Application source repository: [ja-mics-ap](https://github.com/Emmy-github-webdev/ja-mics-ap)
+- GitOps repository: [kubernetes-argocd](https://github.com/Emmy-github-webdev/Kubernetes-argocd)
 
 The platform combines Infrastructure as Code, secure networking, Kubernetes-native delivery, observability, and CI/CD automation to support development, staging, and production environments with strong governance, traceability, and operational consistency.
 
@@ -44,15 +44,15 @@ While this architecture is powerful and enterprise-friendly, it also introduces 
 
 The platform is organized around three repositories and a clear delivery flow:
 
-1. Infrastructure repository (this repo)
+1. [Infrastructure repository](https://github.com/Emmy-github-webdev/Kubernetes)
    - Provisions networking, EKS, IAM, security groups, load balancers, databases, cache, and shared platform services using Terraform.
    - Implements environment-specific modules for dev, staging, and prod.
 
-2. Application repository: ja-mics-ap
+2. [Application repository](https://github.com/Emmy-github-webdev/ja-mics-ap)
    - Contains the application source code, container build logic, and application-level CI/CD automation.
    - Produces container images and publishes them to the configured registry.
 
-3. GitOps repository: kubernetes-argocd
+3. [GitOps repository](https://github.com/Emmy-github-webdev/Kubernetes-argocd)
    - Stores Kubernetes manifests, Argo CD application definitions, overlays, and monitoring configuration.
    - Synchronizes application deployment state from Git into the cluster.
 
@@ -96,7 +96,7 @@ helm version
 Example:
 
 ```bash
-git clone <your-infrastructure-repo-url>
+git clone <https://github.com/Emmy-github-webdev/Kubernetes>
 cd Kubernetes
 terraform -chdir=infra/environments/dev init
 terraform -chdir=infra/environments/dev plan
