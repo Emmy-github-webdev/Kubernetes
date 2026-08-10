@@ -17,7 +17,6 @@ resource "helm_release" "external_secrets" {
   namespace        = "external-secrets"
   create_namespace = true
 
-  version = "0.18.2"
 }
 
 resource "helm_release" "external_dns" {
