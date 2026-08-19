@@ -118,3 +118,31 @@ resource "aws_db_instance" "postgres" {
 
   skip_final_snapshot = true
 }
+
+resource "aws_secretsmanager_secret" "grafana_admin" {
+  name = "grafana/admin"
+
+  recovery_window_in_days = 0
+}
+
+resource "aws_secretsmanager_secret_version" "grafana_admin" {
+  secret_id = aws_secretsmanager_secret.grafana_admin.id
+
+  secret_string = jsonencode({
+    username = "admin"
+    password = var.grafana_admin_password
+  })
+}
+
+resource "aws_secretsmanager_secret" "alertmanager" {
+  name                    = "alertmanager/notification"
+  recovery_window_in_days = 0
+}
+
+resource "aws_secretsmanager_secret_version" "alertmanager" {
+  secret_id = aws_secretsmanager_secret.alertmanager.id
+
+  secret_string = jsonencode({
+    slack-webhook = var.slack_webhook
+  })
+}

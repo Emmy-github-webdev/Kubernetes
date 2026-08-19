@@ -45,9 +45,11 @@ module "eks" {
 }
 
 module "argocd" {
-  source       = "../../modules/argocd"
-  tags         = module.tags.common_tags
-  cluster_name = module.eks.cluster_name
+  source            = "../../modules/argocd"
+  tags              = module.tags.common_tags
+  cluster_name      = module.eks.cluster_name
+  oidc_issuer_url   = module.eks.oidc_issuer_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
   providers = {
     kubernetes = kubernetes
     helm       = helm
@@ -82,6 +84,8 @@ module "rds" {
   private_subnet_ids         = module.vpc.private_subnet_ids
   eks_oidc_provider_arn      = module.eks.oidc_provider_arn
   vpc_id                     = module.vpc.vpc_id
+  grafana_admin_password     = var.grafana_admin_password
+  slack_webhook              = var.slack_webhook
 }
 
 module "redis" {
