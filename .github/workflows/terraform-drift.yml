@@ -15,6 +15,10 @@ jobs:
   drift-detection:
     runs-on: ubuntu-latest
 
+    env:
+      TF_VAR_grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+      TF_VAR_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+
     strategy:
       matrix:
         environment:

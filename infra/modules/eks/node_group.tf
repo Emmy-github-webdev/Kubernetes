@@ -4,7 +4,7 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
   node_role_arn   = aws_iam_role.eks_nodegroup_role.arn
   subnet_ids      = var.private_subnet_ids
 
-  instance_types = ["t3.medium"]
+  instance_types = ["t3.large"]
 
   ami_type = "AL2023_x86_64_STANDARD"
 
@@ -14,10 +14,18 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
     max_size     = 5
   }
 
+  update_config {
+    max_unavailable_percentage = 25
+  }
+
+  labels = {
+    workload = "eks-microservices-application"
+  }
+
   tags = {
-    key                 = "Name"
-    value               = "${var.tags.project}-${var.tags.environment}-node"
-    propagate_at_launch = true
+    Name        = "${var.tags.project}-${var.tags.environment}-node-group"
+    Environment = var.tags.environment
+    Project     = var.tags.project
   }
 
   depends_on = [
@@ -25,6 +33,11 @@ resource "aws_eks_node_group" "eks_managed_node_group" {
     aws_iam_role_policy_attachment.eks-AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.eks-AmazonEC2ContainerRegistryReadOnly,
   ]
+}
+
+resource "aws_eks_addon" "pod_identity" {
+  cluster_name = aws_eks_cluster.eks_cluster.name
+  addon_name   = "eks-pod-identity-agent"
 }
 
 resource "aws_iam_role" "eks_nodegroup_role" {
@@ -59,50 +72,50 @@ resource "aws_iam_role_policy_attachment" "eks-AmazonEC2ContainerRegistryReadOnl
 
 
 # Worker Node Security Group Used by the EC2 instances running Kubernetes workloads
-resource "aws_security_group" "eks_worker_nodes" {
-  name        = "${var.tags.project}-${var.tags.environment}-worker-sg"
-  description = "EKS Worker Node Security Group Used by the EC2 instances running Kubernetes workloads"
-  vpc_id      = var.eks_vpc_id
+#resource "aws_security_group" "eks_worker_nodes" {
+#  name        = "${var.tags.project}-${var.tags.environment}-worker-sg"
+#  description = "EKS Worker Node Security Group Used by the EC2 instances running Kubernetes workloads"
+#  vpc_id      = var.eks_vpc_id
 
-  tags = {
-    Name = "${var.tags.project}-${var.tags.environment}-worker-sg"
-  }
-}
+#  tags = {
+#    Name = "${var.tags.project}-${var.tags.environment}-worker-sg"
+#  }
+#}
 
 # Nodes → Cluster API Server
-resource "aws_vpc_security_group_egress_rule" "eks_worker_to_cluster_https" {
-  description                  = "Allow worker nodes to communicate with the EKS control plane on HTTPS (port 443)"
-  security_group_id            = aws_security_group.eks_worker_nodes.id
-  referenced_security_group_id = aws_security_group.eks_cluster.id
+#resource "aws_vpc_security_group_egress_rule" "eks_worker_to_cluster_https" {
+#  description                  = "Allow worker nodes to communicate with the EKS control plane on HTTPS (port 443)"
+#  security_group_id            = aws_security_group.eks_worker_nodes.id
+#  referenced_security_group_id = aws_security_group.eks_cluster.id
 
-  ip_protocol = "tcp"
-  from_port   = 443
-  to_port     = 443
-}
+#  ip_protocol = "tcp"
+#  from_port   = 443
+#  to_port     = 443
+#}
 
 # Allow control plane → worker node on kubelet port
-resource "aws_vpc_security_group_ingress_rule" "eks_cluster_to_worker_kubelet" {
-  description                  = "Allow EKS control plane to communicate with worker nodes on kubelet port"
-  security_group_id            = aws_security_group.eks_worker_nodes.id
-  referenced_security_group_id = aws_security_group.eks_cluster.id
-  ip_protocol                  = "tcp"
-  from_port                    = 1025
-  to_port                      = 65535
-}
+#resource "aws_vpc_security_group_ingress_rule" "eks_cluster_to_worker_kubelet" {
+#  description                  = "Allow EKS control plane to communicate with worker nodes on kubelet port"
+#  security_group_id            = aws_security_group.eks_worker_nodes.id
+#  referenced_security_group_id = aws_security_group.eks_cluster.id
+#  ip_protocol                  = "tcp"
+#  from_port                    = 1025
+#  to_port                      = 65535
+#}
 
 # Node-to-Node Communication
-resource "aws_vpc_security_group_ingress_rule" "eks_worker_self" {
-  description                  = "Allow worker nodes to communicate with each other"
-  security_group_id            = aws_security_group.eks_worker_nodes.id
-  referenced_security_group_id = aws_security_group.eks_worker_nodes.id
-  ip_protocol                  = "-1"
-}
+#resource "aws_vpc_security_group_ingress_rule" "eks_worker_self" {
+#  description                  = "Allow worker nodes to communicate with each other"
+#  security_group_id            = aws_security_group.eks_worker_nodes.id
+#  referenced_security_group_id = aws_security_group.eks_worker_nodes.id
+#  ip_protocol                  = "-1"
+#}
 
 # worker nodes also need outbound internet/AWS access for image pull from ECR, AWS API, Update downloads
-resource "aws_vpc_security_group_egress_rule" "eks_worker_all_out" {
-  description       = "Allow all outbound traffic from EKS worker nodes"
-  security_group_id = aws_security_group.eks_worker_nodes.id
+#resource "aws_vpc_security_group_egress_rule" "eks_worker_all_out" {
+#  description       = "Allow all outbound traffic from EKS worker nodes"
+#  security_group_id = aws_security_group.eks_worker_nodes.id
 
-  ip_protocol = "-1"
-  cidr_ipv4   = "0.0.0.0/0"
-}
+#  ip_protocol = "-1"
+#  cidr_ipv4   = "0.0.0.0/0"
+#}

@@ -15,7 +15,7 @@ module "vpc" {
   cloudwatch_log_group_arn   = module.cloudwatch.vpc_flow_logs_cloudwatch_loggroup_arn
   vpc_flow_logs_iam_role_arn = module.iam.vpc_flow_logs_iam_role_arn
   cluster_name               = module.eks.cluster_name
-  sg_eks_nodes_id            = module.eks.eks_worker_nodes_sg_id
+  sg_eks_nodes_id            = module.eks.cluster_security_group_id
   oidc_issuer_url            = module.eks.oidc_issuer_url
 }
 
@@ -42,4 +42,56 @@ module "eks" {
   kms_key_arn        = module.cloudwatch.kms_key_arn
   private_subnet_ids = module.vpc.private_subnet_ids
   eks_vpc_id         = module.vpc.vpc_id
+}
+
+module "argocd" {
+  source            = "../../modules/argocd"
+  tags              = module.tags.common_tags
+  cluster_name      = module.eks.cluster_name
+  oidc_issuer_url   = module.eks.oidc_issuer_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  depends_on = [module.eks]
+}
+
+module "alb_ingress" {
+  source            = "../../modules/alb-ingress"
+  tags              = module.tags.common_tags
+  cluster_name      = module.eks.cluster_name
+  oidc_issuer_url   = module.eks.oidc_issuer_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  vpc_id            = module.vpc.vpc_id
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  depends_on = [module.eks]
+}
+
+module "alb" {
+  source      = "../../modules/alb"
+  domain_name = "api.dev.emmanuelogah.com"
+}
+
+module "rds" {
+  source                     = "../../modules/rds"
+  tags                       = module.tags.common_tags
+  eks_node_security_group_id = module.eks.cluster_security_group_id
+  eks_oidc_provider_url      = module.eks.oidc_issuer_url
+  private_subnet_ids         = module.vpc.private_subnet_ids
+  eks_oidc_provider_arn      = module.eks.oidc_provider_arn
+  vpc_id                     = module.vpc.vpc_id
+  grafana_admin_password     = var.grafana_admin_password
+  slack_webhook              = var.slack_webhook
+}
+
+module "redis" {
+  source                     = "../../modules/redis"
+  tags                       = module.tags.common_tags
+  eks_node_security_group_id = module.eks.cluster_security_group_id
+  private_subnet_ids         = module.vpc.private_subnet_ids
+  vpc_id                     = module.vpc.vpc_id
 }

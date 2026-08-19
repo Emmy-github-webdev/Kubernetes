@@ -87,7 +87,7 @@ jobs:
           else
             echo "tf_action=plan" >> $GITHUB_OUTPUT
           fi
-
+          
   terraform:
     needs: determine-env
 

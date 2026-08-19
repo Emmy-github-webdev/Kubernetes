@@ -44,9 +44,12 @@ locals {
 
   eks_admin_role_arn = aws_iam_role.eks_admin.arn
 
+  emmy = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/emmy" # for testing purposes only
+
   eks_admin_principals = {
     eks_admin = local.eks_admin_role_arn
     github    = local.github_role_arn
+    emmy      = local.emmy
   }
 }
 
@@ -102,22 +105,38 @@ resource "aws_eks_cluster" "eks_cluster" {
 }
 
 
-resource "aws_security_group" "eks_cluster" {
-  name        = "${var.tags.project}-${var.tags.environment}-cluster-sg"
-  description = "EKS Cluster Security Group used by the EKS control plane"
-  vpc_id      = var.eks_vpc_id
+#resource "aws_security_group" "eks_cluster" {
+#  name        = "${var.tags.project}-${var.tags.environment}-cluster-sg"
+#  description = "EKS Cluster Security Group used by the EKS control plane"
+#  vpc_id      = var.eks_vpc_id
 
-  tags = {
-    Name = "${var.tags.project}-${var.tags.environment}-cluster-sg"
-  }
+#  tags = {
+#    Name = "${var.tags.project}-${var.tags.environment}-cluster-sg"
+#  }
+#}
+
+#resource "aws_vpc_security_group_ingress_rule" "eks_cluster_https_from_nodes" {
+#  description                  = "Allow worker nodes to communicate with the EKS control plane on HTTPS (port 443)"
+#  security_group_id            = aws_security_group.eks_cluster.id
+#  referenced_security_group_id = aws_security_group.eks_worker_nodes.id
+
+#  ip_protocol = "tcp"
+#  from_port   = 443
+#  to_port     = 443
+#}
+
+data "tls_certificate" "eks" {
+  url = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
 }
 
-resource "aws_vpc_security_group_ingress_rule" "eks_cluster_https_from_nodes" {
-  description                  = "Allow worker nodes to communicate with the EKS control plane on HTTPS (port 443)"
-  security_group_id            = aws_security_group.eks_cluster.id
-  referenced_security_group_id = aws_security_group.eks_worker_nodes.id
+resource "aws_iam_openid_connect_provider" "eks" {
+  url = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
 
-  ip_protocol = "tcp"
-  from_port   = 443
-  to_port     = 443
+  client_id_list = [
+    "sts.amazonaws.com"
+  ]
+
+  thumbprint_list = [
+    data.tls_certificate.eks.certificates[0].sha1_fingerprint
+  ]
 }
