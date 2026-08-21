@@ -1,6 +1,10 @@
-output "repository_url" {
+output "ecr_repositories" {
   value = {
-    for k, repo in aws_ecr_repository.eks_ecr_repository :
-    k => repo.repository_url
+    for name, repo in aws_ecr_repository.eks_ecr_repository :
+    name => {
+      name = repo.name
+      url  = repo.repository_url
+      arn  = repo.arn
+    }
   }
 }
