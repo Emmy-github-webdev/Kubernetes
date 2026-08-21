@@ -313,13 +313,27 @@ jobs:
         id: plan
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
+
+          set -e
+          echo "Terraform working directory:"
+          pwd
+          echo "Terraform state:"
+          terraform state list || true
+          echo "Running Terraform plan..."
+
           terraform plan \
             -out=tfplan \
             -input=false \
             -no-color
 
+          # terraform show -json tfplan > tfplan.json
+          # terraform show -no-color tfplan > tfplan.txt
+
+          echo "Terraform plan completed successfully."
           terraform show -json tfplan > tfplan.json
+          echo "Terraform JSON generated."
           terraform show -no-color tfplan > tfplan.txt
+          echo "Terraform text plan generated."
 
       #################################################
       # PLAN SUMMARY
