@@ -298,8 +298,14 @@ jobs:
             -input=false \
             -no-color
 
+          # terraform show -json tfplan > tfplan.json
+          # terraform show -no-color tfplan > tfplan.txt
+
+          echo "Terraform plan succeeded"
           terraform show -json tfplan > tfplan.json
+          echo "Terraform show JSON succeeded"
           terraform show -no-color tfplan > tfplan.txt
+          echo "Terraform plan processing completed"
 
       #################################################
       # PLAN SUMMARY
