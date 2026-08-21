@@ -95,8 +95,18 @@ module "rds" {
   private_subnet_ids         = module.vpc.private_subnet_ids
   eks_oidc_provider_arn      = module.eks.oidc_provider_arn
   vpc_id                     = module.vpc.vpc_id
-  grafana_admin_password     = var.grafana_admin_password
-  slack_webhook              = var.slack_webhook
+}
+
+module "grafana" {
+  source                 = "../../modules/grafana"
+  tags                   = module.tags.common_tags
+  grafana_admin_password = var.grafana_admin_password
+}
+
+module "alertmanager" {
+  source        = "../../modules/alertmanager"
+  tags          = module.tags.common_tags
+  slack_webhook = var.slack_webhook
 }
 
 module "redis" {
