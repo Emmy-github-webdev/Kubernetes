@@ -15,13 +15,10 @@ jobs:
   drift-detection:
     runs-on: ubuntu-latest
 
-    env:
-      TF_VAR_grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
-      TF_VAR_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
-
     strategy:
       matrix:
         environment:
+          - shared
           - dev
           - staging
           - prod
@@ -34,28 +31,96 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      #################################################
+      # AWS
+      #################################################
+
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::123456789012:role/github-terraform-role
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
+
+      #################################################
+      # SETUP TERRAFORM
+      #################################################
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.8.5"
 
+      #################################################
+      # TERRAFORM BACKEND
+      #################################################
+
+      - name: Configure Terraform Backend
+        env:
+          TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
+          TF_LOCK_TABLE: ${{ secrets.TF_LOCK_TABLE }}
+          AWS_REGION: us-east-1
+
+        working-directory: infra/environments/${{ matrix.environment }}
+
+        run: |
+
+          BACKEND_KEY="${{ matrix.environment }}/tf.tfstate"
+
+          cat > backend.hcl <<EOF
+          bucket         = "${TF_STATE_BUCKET}"
+          key            = "${BACKEND_KEY}"
+          region         = "${AWS_REGION}"
+          dynamodb_table = "${TF_LOCK_TABLE}"
+          encrypt        = true
+          EOF
+
+          echo "Backend:"
+          cat backend.hcl
+
+      #################################################
+      # TERRAFORM INIT
+      #################################################
+
       - name: Terraform Init
         working-directory: infra/environments/${{ matrix.environment }}
-        run: terraform init -input=false
+
+        run: |
+          terraform init \
+            -backend-config=backend.hcl \
+            -input=false
+
+      #################################################
+      # TERRAFORM DRIFT CHECK
+      #################################################
 
       - name: Terraform Drift Check
         working-directory: infra/environments/${{ matrix.environment }}
-        run: |
-          terraform plan \
-            -detailed-exitcode
 
-      # Exit code meanings:
-      # 0 = no drift
-      # 1 = error
-      # 2 = drift detected
+        run: |
+          set +e
+
+          terraform plan \
+            -detailed-exitcode \
+            -input=false \
+            -no-color
+
+          EXIT_CODE=$?
+
+          echo "Terraform exit code: $EXIT_CODE"
+
+          # 0 = no changes
+          # 1 = Terraform error
+          # 2 = drift detected
+
+          if [ "$EXIT_CODE" -eq 1 ]; then
+            echo "Terraform encountered an error"
+            exit 1
+          fi
+
+          if [ "$EXIT_CODE" -eq 2 ]; then
+            echo "Terraform drift detected"
+            exit 2
+          fi
+
+          echo "No Terraform drift detected"
+          exit 0

@@ -30,22 +30,20 @@ on:
         required: true
         type: choice
         options:
+          - shared
           - dev
           - staging
           - prod
 
 concurrency:
-  group: terraform-${{ github.ref }}
+  group: terraform-${{ github.ref }}-${{ inputs.environment || 'auto' }}
   cancel-in-progress: true
 
-################################################# 
-# REQUIRED FOR REUSABLE WORKFLOW 
-################################################# 
-permissions: 
-  id-token: write 
-  contents: read 
+permissions:
+  id-token: write
+  contents: read
   issues: write
-  pull-requests: write 
+  pull-requests: write
   security-events: write
 
 jobs:
@@ -58,36 +56,64 @@ jobs:
       tf_action: ${{ steps.setenv.outputs.tf_action }}
 
     steps:
+
       - id: setenv
         run: |
 
+          #################################################
+          # MANUAL WORKFLOW
+          #################################################
+
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
-            echo "tf_action=${{ github.event.inputs.action }}" >> $GITHUB_OUTPUT
+
+            echo "environment=${{ github.event.inputs.environment }}" >> "$GITHUB_OUTPUT"
+
+            echo "tf_action=${{ github.event.inputs.action }}" >> "$GITHUB_OUTPUT"
+
             exit 0
+
           fi
+
+          #################################################
+          # AUTOMATIC WORKFLOW
+          #################################################
 
           BRANCH="${GITHUB_REF#refs/heads/}"
 
           if [[ "$BRANCH" == "develop" ]]; then
-            echo "environment=dev" >> $GITHUB_OUTPUT
+
+            echo "environment=dev" >> "$GITHUB_OUTPUT"
 
           elif [[ "$BRANCH" == "staging" ]]; then
-            echo "environment=staging" >> $GITHUB_OUTPUT
+
+            echo "environment=staging" >> "$GITHUB_OUTPUT"
 
           elif [[ "$BRANCH" == "main" ]]; then
-            echo "environment=prod" >> $GITHUB_OUTPUT
+
+            echo "environment=prod" >> "$GITHUB_OUTPUT"
 
           else
-            echo "environment=dev" >> $GITHUB_OUTPUT
+
+            echo "environment=dev" >> "$GITHUB_OUTPUT"
+
           fi
 
-          if [[ "$BRANCH" == "develop" || "$BRANCH" == "staging" || "$BRANCH" == "main" ]]; then
-            echo "tf_action=apply" >> $GITHUB_OUTPUT
+          #################################################
+          # TERRAFORM ACTION
+          #################################################
+
+          if [[ "$BRANCH" == "develop" ||
+                "$BRANCH" == "staging" ||
+                "$BRANCH" == "main" ]]; then
+
+            echo "tf_action=apply" >> "$GITHUB_OUTPUT"
+
           else
-            echo "tf_action=plan" >> $GITHUB_OUTPUT
+
+            echo "tf_action=plan" >> "$GITHUB_OUTPUT"
+
           fi
-          
+
   terraform:
     needs: determine-env
 
