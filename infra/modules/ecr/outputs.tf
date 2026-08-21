@@ -8,3 +8,11 @@ output "ecr_repositories" {
     }
   }
 }
+
+output "repository_urls" {
+  description = "Shared ECR repository URLs keyed by service"
+  value = {
+    for name, repo in aws_ecr_repository.eks_ecr_repository :
+    name => repo.repository_url
+  }
+}
