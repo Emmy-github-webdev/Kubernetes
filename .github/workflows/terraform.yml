@@ -49,6 +49,10 @@ permissions:
 
 jobs:
 
+  #################################################
+  # DETERMINE TERRAFORM ENVIRONMENT
+  #################################################
+
   determine-env:
     runs-on: ubuntu-latest
 
@@ -58,7 +62,9 @@ jobs:
 
     steps:
 
-      - id: setenv
+      - name: Determine Environment
+        id: setenv
+        shell: bash
         run: |
 
           #################################################
@@ -66,61 +72,107 @@ jobs:
           #################################################
 
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "environment=${{ github.event.inputs.environment }}" >> "$GITHUB_OUTPUT"
-            echo "tf_action=${{ github.event.inputs.action }}" >> "$GITHUB_OUTPUT"
+
+            echo "Manual workflow detected"
+
+            echo "environment=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
+            echo "tf_action=${{ inputs.action }}" >> "$GITHUB_OUTPUT"
+
+            echo "Environment: ${{ inputs.environment }}"
+            echo "Action: ${{ inputs.action }}"
+
             exit 0
           fi
 
+
           #################################################
-          # AUTOMATIC WORKFLOW
+          # PULL REQUEST
           #################################################
-          
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+
+            SOURCE_BRANCH="${{ github.head_ref }}"
+            TARGET_BRANCH="${{ github.base_ref }}"
+
+            echo "Pull request detected"
+            echo "Source branch: ${SOURCE_BRANCH}"
+            echo "Target branch: ${TARGET_BRANCH}"
+
+            case "$TARGET_BRANCH" in
+
+              develop)
+                echo "environment=dev" >> "$GITHUB_OUTPUT"
+                echo "tf_action=plan" >> "$GITHUB_OUTPUT"
+                ;;
+
+              staging)
+                echo "environment=staging" >> "$GITHUB_OUTPUT"
+                echo "tf_action=plan" >> "$GITHUB_OUTPUT"
+                ;;
+
+              main)
+                echo "environment=prod" >> "$GITHUB_OUTPUT"
+                echo "tf_action=plan" >> "$GITHUB_OUTPUT"
+                ;;
+
+              *)
+                echo "Unsupported PR target branch: ${TARGET_BRANCH}"
+                exit 1
+                ;;
+
+            esac
+
+            exit 0
+          fi
+
+
+          #################################################
+          # PUSH
+          #################################################
+
           BRANCH="${GITHUB_REF#refs/heads/}"
+
+          echo "Push detected"
+          echo "Branch: ${BRANCH}"
 
           case "$BRANCH" in
 
             develop)
+
               echo "environment=dev" >> "$GITHUB_OUTPUT"
               echo "tf_action=apply" >> "$GITHUB_OUTPUT"
               ;;
 
             staging)
+
               echo "environment=staging" >> "$GITHUB_OUTPUT"
               echo "tf_action=apply" >> "$GITHUB_OUTPUT"
               ;;
 
             main)
+
               echo "environment=prod" >> "$GITHUB_OUTPUT"
               echo "tf_action=apply" >> "$GITHUB_OUTPUT"
               ;;
 
             feature/*)
+
               echo "environment=dev" >> "$GITHUB_OUTPUT"
               echo "tf_action=plan" >> "$GITHUB_OUTPUT"
               ;;
 
             *)
-              echo "Unsupported branch: $BRANCH"
+
+              echo "Unsupported branch: ${BRANCH}"
               exit 1
               ;;
 
           esac
 
-          #################################################
-          # TERRAFORM ACTION
-          #################################################
 
-          if [[ "$BRANCH" == "develop" ||
-                "$BRANCH" == "staging" ||
-                "$BRANCH" == "main" ]]; then
-
-            echo "tf_action=apply" >> "$GITHUB_OUTPUT"
-
-          else
-
-            echo "tf_action=plan" >> "$GITHUB_OUTPUT"
-
-          fi
+  #################################################
+  # TERRAFORM
+  #################################################
 
   terraform:
     needs: determine-env
