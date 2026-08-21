@@ -1,14 +1,3 @@
-data "terraform_remote_state" "shared" {
-  backend = "s3"
-
-  config = {
-    bucket         = var.terraform_state_bucket
-    key            = "shared/tf.tfstate"
-    region         = var.region
-    dynamodb_table = var.terraform_lock_table
-  }
-}
-
 module "tags" {
   source       = "../../modules/terraform-tags"
   env_name     = var.environment
