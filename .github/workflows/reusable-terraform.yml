@@ -27,9 +27,9 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
-    env:
-      TF_VAR_grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
-      TF_VAR_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+    # env:
+    #   TF_VAR_grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+    #   TF_VAR_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 
     environment:
       name: ${{ inputs.environment }}
@@ -39,6 +39,26 @@ jobs:
         shell: bash
 
     steps:
+
+      #################################################
+      # CONFIGURE TERRAFORM VARIABLES
+      #################################################
+
+      - name: Configure Terraform Variables
+        if: inputs.environment != 'shared'
+        env:
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          {
+            echo "TF_VAR_grafana_admin_password<<EOF"
+            echo "$GRAFANA_ADMIN_PASSWORD"
+            echo "EOF"
+
+            echo "TF_VAR_slack_webhook<<EOF"
+            echo "$SLACK_WEBHOOK"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
 
       #################################################
       # CHECKOUT
@@ -298,14 +318,8 @@ jobs:
             -input=false \
             -no-color
 
-          # terraform show -json tfplan > tfplan.json
-          # terraform show -no-color tfplan > tfplan.txt
-
-          echo "Terraform plan succeeded"
           terraform show -json tfplan > tfplan.json
-          echo "Terraform show JSON succeeded"
           terraform show -no-color tfplan > tfplan.txt
-          echo "Terraform plan processing completed"
 
       #################################################
       # PLAN SUMMARY
