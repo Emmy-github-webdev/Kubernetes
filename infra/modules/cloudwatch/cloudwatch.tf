@@ -51,6 +51,6 @@ resource "aws_kms_key" "cloudwatch_logs" {
 }
 
 resource "aws_kms_alias" "cloudwatch_logs" {
-  name          = "alias/cloudwatch-logs"
+  name          = "alias/cloudwatch-logs-${var.tags.environment}"
   target_key_id = aws_kms_key.cloudwatch_logs.key_id
 }

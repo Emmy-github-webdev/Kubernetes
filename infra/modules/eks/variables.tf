@@ -18,9 +18,3 @@ variable "eks_vpc_id" {
   description = "VPC ID for the EKS cluster"
   type        = string
 }
-
-variable "app_name" {
-  description = "The name of the microservices application"
-  type        = string
-  default     = "ja-mics-ap"
-}

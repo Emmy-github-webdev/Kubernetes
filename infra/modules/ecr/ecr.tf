@@ -22,9 +22,9 @@ resource "aws_ecr_repository" "eks_ecr_repository" {
   }
 
   force_delete = false
-  tags = {
-    Name = "${var.tags.project}-${var.tags.environment}-ecr"
-  }
+  tags = merge(var.tags, {
+    Name = "${var.app_name}-shared-ecr"
+  })
 }
 
 resource "aws_ecr_lifecycle_policy" "eks_ecr_lifecycle_policy" {

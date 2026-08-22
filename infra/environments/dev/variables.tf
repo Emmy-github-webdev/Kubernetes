@@ -25,3 +25,15 @@ variable "slack_webhook" {
   type        = string
   sensitive   = true
 }
+
+variable "terraform_state_bucket" {
+  description = "S3 bucket name for storing Terraform state"
+  type        = string
+  default     = "emmy-github-webdev-kubernetes"
+}
+
+variable "terraform_lock_table" {
+  description = "DynamoDB table name for Terraform locking"
+  type        = string
+  default     = "Emmy-github-webdev_Kubernetes_dynamo_tbl"
+}
