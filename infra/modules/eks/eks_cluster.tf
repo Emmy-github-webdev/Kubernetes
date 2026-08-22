@@ -105,26 +105,6 @@ resource "aws_eks_cluster" "eks_cluster" {
 }
 
 
-#resource "aws_security_group" "eks_cluster" {
-#  name        = "${var.tags.project}-${var.tags.environment}-cluster-sg"
-#  description = "EKS Cluster Security Group used by the EKS control plane"
-#  vpc_id      = var.eks_vpc_id
-
-#  tags = {
-#    Name = "${var.tags.project}-${var.tags.environment}-cluster-sg"
-#  }
-#}
-
-#resource "aws_vpc_security_group_ingress_rule" "eks_cluster_https_from_nodes" {
-#  description                  = "Allow worker nodes to communicate with the EKS control plane on HTTPS (port 443)"
-#  security_group_id            = aws_security_group.eks_cluster.id
-#  referenced_security_group_id = aws_security_group.eks_worker_nodes.id
-
-#  ip_protocol = "tcp"
-#  from_port   = 443
-#  to_port     = 443
-#}
-
 data "tls_certificate" "eks" {
   url = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
 }
