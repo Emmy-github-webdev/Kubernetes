@@ -32,7 +32,8 @@ jobs:
     #   TF_VAR_slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 
     environment:
-      name: ${{ inputs.environment }}
+      #name: ${{ inputs.environment }}
+      name: ${{ inputs.environment == 'shared' && 'dev' || inputs.environment }}
 
     defaults:
       run:
