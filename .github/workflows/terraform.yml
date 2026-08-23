@@ -10,6 +10,7 @@ on:
 
   pull_request:
     branches:
+      - develop
       - staging
       - main
 
@@ -18,9 +19,10 @@ on:
       action:
         description: "Terraform action"
         required: true
-        default: "apply"
+        default: "plan"
         type: choice
         options:
+          - plan
           - apply
           - destroy
 
@@ -29,15 +31,27 @@ on:
         required: true
         type: choice
         options:
+          - shared
           - dev
           - staging
           - prod
 
 concurrency:
-  group: terraform-${{ github.ref }}
+  group: terraform-${{ github.ref }}-${{ inputs.environment || 'auto' }}
   cancel-in-progress: true
 
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+  pull-requests: write
+  security-events: write
+
 jobs:
+
+  #################################################
+  # DETERMINE TERRAFORM ENVIRONMENT
+  #################################################
 
   determine-env:
     runs-on: ubuntu-latest
@@ -47,31 +61,118 @@ jobs:
       tf_action: ${{ steps.setenv.outputs.tf_action }}
 
     steps:
-      - id: setenv
+
+      - name: Determine Environment
+        id: setenv
+        shell: bash
         run: |
 
+          #################################################
+          # MANUAL WORKFLOW
+          #################################################
+
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
-            echo "tf_action=${{ github.event.inputs.action }}" >> $GITHUB_OUTPUT
+
+            echo "Manual workflow detected"
+
+            echo "environment=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
+            echo "tf_action=${{ inputs.action }}" >> "$GITHUB_OUTPUT"
+
+            echo "Environment: ${{ inputs.environment }}"
+            echo "Action: ${{ inputs.action }}"
+
             exit 0
           fi
 
-          BRANCH="${GITHUB_REF#refs/heads/}"
 
-          if [[ "$BRANCH" == "develop" ]]; then
-            echo "environment=dev" >> $GITHUB_OUTPUT
+          #################################################
+          # PULL REQUEST
+          #################################################
 
-          elif [[ "$BRANCH" == "staging" ]]; then
-            echo "environment=staging" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
 
-          elif [[ "$BRANCH" == "main" ]]; then
-            echo "environment=prod" >> $GITHUB_OUTPUT
+            SOURCE_BRANCH="${{ github.head_ref }}"
+            TARGET_BRANCH="${{ github.base_ref }}"
 
-          else
-            echo "environment=dev" >> $GITHUB_OUTPUT
+            echo "Pull request detected"
+            echo "Source branch: ${SOURCE_BRANCH}"
+            echo "Target branch: ${TARGET_BRANCH}"
+
+            case "$TARGET_BRANCH" in
+
+              develop)
+                echo "environment=dev" >> "$GITHUB_OUTPUT"
+                echo "tf_action=plan" >> "$GITHUB_OUTPUT"
+                ;;
+
+              staging)
+                echo "environment=staging" >> "$GITHUB_OUTPUT"
+                echo "tf_action=plan" >> "$GITHUB_OUTPUT"
+                ;;
+
+              main)
+                echo "environment=prod" >> "$GITHUB_OUTPUT"
+                echo "tf_action=plan" >> "$GITHUB_OUTPUT"
+                ;;
+
+              *)
+                echo "Unsupported PR target branch: ${TARGET_BRANCH}"
+                exit 1
+                ;;
+
+            esac
+
+            exit 0
           fi
 
-          echo "tf_action=apply" >> $GITHUB_OUTPUT
+
+          #################################################
+          # PUSH
+          #################################################
+
+          BRANCH="${GITHUB_REF#refs/heads/}"
+
+          echo "Push detected"
+          echo "Branch: ${BRANCH}"
+
+          case "$BRANCH" in
+
+            develop)
+
+              echo "environment=dev" >> "$GITHUB_OUTPUT"
+              echo "tf_action=apply" >> "$GITHUB_OUTPUT"
+              ;;
+
+            staging)
+
+              echo "environment=staging" >> "$GITHUB_OUTPUT"
+              echo "tf_action=apply" >> "$GITHUB_OUTPUT"
+              ;;
+
+            main)
+
+              echo "environment=prod" >> "$GITHUB_OUTPUT"
+              echo "tf_action=apply" >> "$GITHUB_OUTPUT"
+              ;;
+
+            feature/*)
+
+              echo "environment=dev" >> "$GITHUB_OUTPUT"
+              echo "tf_action=plan" >> "$GITHUB_OUTPUT"
+              ;;
+
+            *)
+
+              echo "Unsupported branch: ${BRANCH}"
+              exit 1
+              ;;
+
+          esac
+
+
+  #################################################
+  # TERRAFORM
+  #################################################
 
   terraform:
     needs: determine-env

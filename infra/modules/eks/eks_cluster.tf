@@ -1,0 +1,122 @@
+data "aws_caller_identity" "current" {}
+
+resource "aws_iam_role" "eks_cluster_role" {
+  name = "${var.tags.project}-${var.tags.environment}-cluster-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
+        Effect = "Allow"
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy_attachment" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
+
+resource "aws_iam_role" "eks_admin" {
+  name = "${var.tags.project}-${var.tags.environment}-admin-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+locals {
+  github_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-Kubernetes-${var.tags.environment}-role"
+
+  eks_admin_role_arn = aws_iam_role.eks_admin.arn
+
+  emmy = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/emmy" # for testing purposes only
+
+  eks_admin_principals = {
+    eks_admin = local.eks_admin_role_arn
+    github    = local.github_role_arn
+    emmy      = local.emmy
+  }
+}
+
+resource "aws_eks_access_entry" "eks_access_entry" {
+  for_each      = local.eks_admin_principals
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = each.value
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "eks_access_policy_association" {
+  for_each      = local.eks_admin_principals
+  cluster_name  = aws_eks_cluster.eks_cluster.name
+  principal_arn = each.value
+
+  policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+}
+
+resource "aws_eks_cluster" "eks_cluster" {
+  name     = "${var.tags.project}-${var.tags.environment}-cluster"
+  role_arn = aws_iam_role.eks_cluster_role.arn
+  version  = "1.33"
+
+  access_config {
+    authentication_mode = "API"
+  }
+
+  vpc_config {
+    endpoint_private_access = true
+    endpoint_public_access  = true
+    subnet_ids              = var.private_subnet_ids
+  }
+
+  encryption_config {
+    resources = ["secrets"]
+    provider {
+      key_arn = var.kms_key_arn
+    }
+  }
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
+  tags = {
+    Name = "${var.tags.project}-${var.tags.environment}-cluster"
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eks_cluster_policy_attachment
+  ]
+}
+
+
+data "tls_certificate" "eks" {
+  url = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_openid_connect_provider" "eks" {
+  url = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
+
+  client_id_list = [
+    "sts.amazonaws.com"
+  ]
+
+  thumbprint_list = [
+    data.tls_certificate.eks.certificates[0].sha1_fingerprint
+  ]
+}
